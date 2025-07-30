@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     async function fetchReports(city, status = 'all') {
         try {
-            const BASE_URL = 'https://webfinalproject-j4tc.onrender.com';
+            const BASE_URL = process.env.REACT_APP_API_URL;
             let url = `${BASE_URL}/api/employee-reports?city=${encodeURIComponent(city)}`;
             if (status !== 'all') {
                 url += `&status=${encodeURIComponent(status)}`;

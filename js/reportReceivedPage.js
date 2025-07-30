@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mediaPreview = document.getElementById('mediaPreview');
     const goToMyReportsBtn = document.getElementById('goToMyReportsBtn');
     const goToHomeBtn = document.getElementById('goToHomeBtn');
-    const API_BASE_URL = 'https://webfinalproject-j4tc.onrender.com/api';
+    const API_BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
 
     async function fetchReportById(reportId) {
         console.log(`[DEBUG] Fetching report by ID: ${reportId}`);

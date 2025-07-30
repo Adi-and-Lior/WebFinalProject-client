@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const BASE_URL = 'https://webfinalproject-j4tc.onrender.com';
-
+    const BASE_URL = process.env.REACT_APP_API_URL;
+    
     /* ---------- Fetch Report ID from URL ---------- */
     const urlParams = new URLSearchParams(window.location.search);
     const reportId  = urlParams.get('id');

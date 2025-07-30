@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded',async () => {
     // --- Defining HTML elements ---
     const backButton = document.getElementById('backButton');
     const reportForm = document.querySelector('.report-form');
-    const API_BASE_URL = 'https://webfinalproject-j4tc.onrender.com/api';
+    const API_BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
     // Fault type elements
     const faultTypeSelect = document.getElementById('fault-type');
     const faultDescriptionTextarea = document.getElementById('fault-description');

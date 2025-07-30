@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bodyData.city = employeeAuthCode;
       }
 
-      const res = await fetch('https://webfinalproject-j4tc.onrender.com/api/register', {
+      const res = await fetch('https://webfinalproject-server.onrender.com/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyData)
