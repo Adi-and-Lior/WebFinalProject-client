@@ -417,7 +417,7 @@ async function loadMediaOptions() {
     const address = `${houseNumber ? houseNumber + ' ' : ''}${street}, ${city}, Israel`; // בנה את הכתובת
     console.log(`geocodeAddress: Attempting to geocode address: '${address}'`);
     try {
-        const response = await fetch(`${API_BASE_URL}/api/geocode?address=${encodeURIComponent(address)}`);
+        const response = await fetch(`${API_BASE_URL}/geocode?address=${encodeURIComponent(address)}`);
         const data = await response.json();
         console.log("geocodeAddress: Geocoding API response:", data);
         if (data.status === 'OK' && data.results.length > 0) {
