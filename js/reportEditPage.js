@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'completed': 'הושלם',
         'rejected': 'נדחה',
     };
-    const backendBaseUrl = process.env.REACT_APP_API_URL;
+    const backendBaseUrl = 'https://webfinalproject-server.onrender.com';
     try {
         const response = await fetch(`${backendBaseUrl}/api/reports/${reportId}`);
         if (!response.ok) {

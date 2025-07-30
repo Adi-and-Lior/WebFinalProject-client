@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mediaPreview = document.getElementById('mediaPreview');
     const goToMyReportsBtn = document.getElementById('goToMyReportsBtn');
     const goToHomeBtn = document.getElementById('goToHomeBtn');
-    const API_BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
+    const API_BASE_URL = 'https://webfinalproject-server.onrender.com/api';
 
     async function fetchReportById(reportId) {
         console.log(`[DEBUG] Fetching report by ID: ${reportId}`);

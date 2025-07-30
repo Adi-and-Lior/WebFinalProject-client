@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = process.env.REACT_APP_API_URL;
+    const BASE_URL = 'https://webfinalproject-server.onrender.com';
 
     const urlParams = new URLSearchParams(window.location.search);
     const reportId  = urlParams.get('id');

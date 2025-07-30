@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const employeeAuthCodeInput = document.getElementById('employeeAuthCode');
   const backButton = document.getElementById('backButton');
   const selectedUserType = localStorage.getItem('selectedUserType');
+  const BASE_URL = 'https://webfinalproject-server.onrender.com';
 
   // פונקציה כללית להפעלת עין לכל שדה
   function setupPasswordToggle(inputId, toggleId, lockIconId) {
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bodyData.city = employeeAuthCode;
       }
 
-      const res = await fetch('https://webfinalproject-server.onrender.com/api/register', {
+      const res = await fetch(`${BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyData)

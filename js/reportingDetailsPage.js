@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const API_BASE_URL = process.env.REACT_APP_API_URL;
+    const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
     const backButton = document.querySelector('.reports-title .back-arrow').closest('a');
     const homeButton = document.querySelector('.thank-you-footer button');
     const displayFaultType = document.getElementById('displayFaultType');
