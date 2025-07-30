@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     let currentUserId = loggedInUser ? loggedInUser.userId : null;
     let currentUserType = loggedInUser ? loggedInUser.userType : null;
-    const API_BASE_URL = 'https://webfinalproject-server.onrender.com/api';
+    const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
 
     if (!currentUserId) {
         console.warn('אין משתמש מחובר. לא ניתן לאחזר דיווחים.');
