@@ -357,7 +357,7 @@ async function loadMediaOptions() {
                 currentLon = position.coords.longitude;
                 console.log(`getCurrentLocation: Current Location: Lat ${currentLat}, Lon ${currentLon}`);
                 try {
-                    const response = await fetch(`${API_BASE_URL}/geocode?latlng=${lat},${lng}`);
+                    const response = await fetch(`${API_BASE_URL}/geocode?latlng=${currentLat},${currentLon}`);
                     const data = await response.json();
                     console.log("getCurrentLocation: Geocoding API response:", data);
                     if (data.status === 'OK' && data.results.length > 0) {
