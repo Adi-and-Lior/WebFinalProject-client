@@ -1,11 +1,11 @@
 let map;
 let markers = [];
 let infoWindow; 
-
+const BASE_URL = 'https://webfinalproject-server.onrender.com';
 /* ---------- Dynamically loads Google Maps API script and fetches API key ---------- */
 async function loadGoogleMapsScript() {
     try {
-        const response = await fetch('/api/google-maps-api-key');
+        const response = await fetch(`${BASE_URL}/api/google-maps-api-key`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -42,7 +42,7 @@ function initMap() {
 /* ---------- Fetches all reports and displays them as markers on the map ---------- */
 async function loadReportsAndDisplayOnMap() {
     try {
-        const response = await fetch('/api/all-reports-locations');
+        const response = await fetch(`${BASE_URL}/api/all-reports-locations`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

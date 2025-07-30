@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // פונקציה לקבלת כתובת מפענוח קואורדינטות
     const getAddressFromCoordinates = async (lat, lon) => {
   try {
-    const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+    const response = await fetch(`${API_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
     const data = await response.json();
     return data;
   } catch (error) {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
-            const res = await fetch(`/api/reports/${reportId}?userId=${currentUserId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/reports/${reportId}?userId=${currentUserId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });

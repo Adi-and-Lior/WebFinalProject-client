@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userProfileDisplay = document.getElementById('userProfileDisplay');
     const userNameDisplay = document.getElementById('userNameDisplay');
     const deleteProfileButton = document.getElementById('deleteProfileButton');
+    const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
     function updateUserProfileText() {
         const userProfileType = localStorage.getItem('selectedUserType'); 
         console.log('User profile type from localStorage:', userProfileType); 
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const response = await fetch(`/api/users/${userId}`, {
+                    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',

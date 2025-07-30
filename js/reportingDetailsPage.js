@@ -10,10 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mediaContainer = document.getElementById('displayMedia');
     const displayStatus = document.getElementById('displayStatus');
     const displayResponse = document.getElementById('displayMunicipalityResponse');
-
     const getAddressFromCoordinates = async (lat, lon) => {
   try {
-    const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+    const response = await fetch(`${API_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
     const data = await response.json();
     return data;
   } catch (error) {

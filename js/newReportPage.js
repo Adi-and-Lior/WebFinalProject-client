@@ -357,7 +357,7 @@ async function loadMediaOptions() {
                 currentLon = position.coords.longitude;
                 console.log(`getCurrentLocation: Current Location: Lat ${currentLat}, Lon ${currentLon}`);
                 try {
-                    const response = await fetch(`/api/geocode?latlng=${currentLat},${currentLon}`);
+                    const response = await fetch(`${API_BASE_URL}/geocode?latlng=${lat},${lng}`);
                     const data = await response.json();
                     console.log("getCurrentLocation: Geocoding API response:", data);
                     if (data.status === 'OK' && data.results.length > 0) {
@@ -417,7 +417,7 @@ async function loadMediaOptions() {
     const address = `${houseNumber ? houseNumber + ' ' : ''}${street}, ${city}, Israel`; // בנה את הכתובת
     console.log(`geocodeAddress: Attempting to geocode address: '${address}'`);
     try {
-        const response = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+        const response = await fetch(`${API_BASE_URL}/api/geocode?address=${encodeURIComponent(address)}`);
         const data = await response.json();
         console.log("geocodeAddress: Geocoding API response:", data);
         if (data.status === 'OK' && data.results.length > 0) {
