@@ -271,7 +271,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(errorData.message || 'Failed to fetch location modes');
             }
             const locationModes = await response.json();
-            console.log('[DEBUG] Received location modes:', locationModes);
 
             locationOptionsContainer.innerHTML = '';
 
@@ -502,7 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             component.types.includes('locality') || component.types.includes('administrative_area_level_1')
                         );
                         currentCity = cityComponent ? cityComponent.long_name : '';
-                        console.log("getCurrentLocation: Parsed address:", locationString, "City:", currentCity);
+
                         alert(`המיקום הנוכחי זוהה בהצלחה!`);
                         updateStatusIcon(customLocationSelect, locationStatusIcon);
                     } else {
