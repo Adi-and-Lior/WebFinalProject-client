@@ -2,6 +2,7 @@ let map;
 let markers = [];
 let infoWindow; 
 const BASE_URL = 'https://webfinalproject-server.onrender.com';
+
 /* ---------- Dynamically loads Google Maps API script and fetches API key ---------- */
 async function loadGoogleMapsScript() {
     try {
@@ -15,14 +16,16 @@ async function loadGoogleMapsScript() {
         if (!apiKey) {
             throw new Error('מפתח API למפות לא הוחזר מהשרת.');
         }
+
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
         script.async = true;
         script.defer = true;
         document.head.appendChild(script);
+
         console.log("Google Maps API script loaded successfully.");
     } catch (error) {
-        console.error('שגיאה בטעינת מפתח ה-API של גוגל מפות או הסקריפט:', error);
+        console.error('Error loading Google Maps API key or script:', error);
         alert('אירעה שגיאה בטעינת המפה. אנא נסה שוב מאוחר יותר.');
     }
 }
@@ -46,20 +49,26 @@ async function loadReportsAndDisplayOnMap() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         let reportsLocations = await response.json();
         reportsLocations = reportsLocations.filter(report => report.status === "in-progress");
+
         clearMarkers();
+
         const reportNumberDisplay = document.getElementById('reportNumberDisplay');
         if (reportNumberDisplay) {
             reportNumberDisplay.textContent = ` (${reportsLocations.length})`;
         }
+
         const bounds = new google.maps.LatLngBounds();
+
         reportsLocations.forEach(report => {
             const marker = new google.maps.Marker({
                 position: { lat: report.lat, lng: report.lng },
                 map: map,
                 title: report.title 
             });
+
             markers.push(marker);
             bounds.extend(new google.maps.LatLng(report.lat, report.lng));
 
@@ -77,7 +86,7 @@ async function loadReportsAndDisplayOnMap() {
         }
 
     } catch (error) {
-        console.error('שגיאה בטעינת הדיווחים למפה:', error);
+        console.error('Error loading reports to map:', error);
         alert('אירעה שגיאה בטעינת הדיווחים למפה.');
     }
 }

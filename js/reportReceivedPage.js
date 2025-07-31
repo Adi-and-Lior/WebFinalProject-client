@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    /* ---------- Log when DOM is fully loaded ---------- */
     console.log('[INFO] DOM fully loaded');
+
+    /* ---------- Cache DOM elements ---------- */
     const displayFaultType = document.getElementById('displayFaultType');
     const displayLocation = document.getElementById('displayLocation');
     const displayDate = document.getElementById('displayDate');
@@ -9,8 +12,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mediaPreview = document.getElementById('mediaPreview');
     const goToMyReportsBtn = document.getElementById('goToMyReportsBtn');
     const goToHomeBtn = document.getElementById('goToHomeBtn');
+
+    /* ---------- Base API URL ---------- */
     const API_BASE_URL = 'https://webfinalproject-server.onrender.com/api';
 
+    /* ---------- Fetch report data by ID from backend ---------- */
     async function fetchReportById(reportId) {
         console.log(`[DEBUG] Fetching report by ID: ${reportId}`);
         try {
@@ -20,38 +26,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('[DEBUG] Report fetched from server:', data);
             return data;
         } catch (error) {
-            console.error('שגיאה באחזור דיווח לפי ID:', error);
-            return null;
+            console.error('Error fetching report by ID:', error);
+            return null; /* ---------- Return null if fetch fails ---------- */
         }
     }
 
-    // פונקציה לעדכון מיקום הדיווח בשרת 
+    /* ---------- Update report location on server ---------- */
     async function updateReportLocation(reportId, city, street, houseNumber, latitude, longitude) {
         console.log(`[DEBUG] Updating report location for ID: ${reportId} to City: ${city}, Street: ${street}, Number: ${houseNumber}`);
         try {
             const response = await fetch(`${API_BASE_URL}/reports/${reportId}/location`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ city, street, houseNumber, latitude, longitude })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'כשל בעדכון מיקום הדיווח בשרת');
+                throw new Error(errorData.message || 'Failed to update report location on server');
             }
 
             const data = await response.json();
-            console.log('מיקום הדיווח עודכן בהצלחה בשרת:', data.report);
-            return data.report; // החזר את הדיווח המעודכן
+            console.log('Report location successfully updated on server:', data.report);
+            return data.report; /* ---------- Return updated report data ---------- */
         } catch (error) {
-            console.error('שגיאה בעדכון מיקום הדיווח בשרת:', error);
-            // אין צורך להציג alert כאן, אפשר לטפל בזה במקום אחר אם צריך
+            console.error('Error updating report location on server:', error);
+            /* ---------- No alert here to avoid interrupting user experience ---------- */
             return null;
         }
     }
 
+    /* ---------- Reverse geocode: Get address from coordinates ---------- */
     async function getAddressFromCoordinates(lat, lon) {
         console.log(`[DEBUG] Getting address from coordinates: lat=${lat}, lon=${lon}`);
         try {
@@ -65,11 +70,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('[DEBUG] Address data returned:', data);
             return data;
         } catch (error) {
-            console.error('שגיאה בפענוח מיקום (reverse geocode):', error);
-            return null;
+            console.error('Error during reverse geocode:', error);
+            return null; /* ---------- Return null if reverse geocode fails ---------- */
         }
     }
 
+    /* ---------- Parse location string into formatted address ---------- */
     function parseLocationString(locationStr) {
         console.log('[DEBUG] Parsing location string:', locationStr);
         let formattedLocation = '';
@@ -98,18 +104,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         return formattedLocation;
     }
 
+    /* ---------- Main logic: Load report from localStorage or backend ---------- */
     const lastReportId = localStorage.getItem('lastReportId');
     console.log('[DEBUG] Last report ID from localStorage:', lastReportId);
     let reportData = null;
+
     if (lastReportId) {
         reportData = await fetchReportById(lastReportId);
     }
+
     if (!reportData) {
-        console.warn('[WARN] Report not found in server, trying localStorage fallback');
+        console.warn('[WARN] Report not found on server, trying localStorage fallback');
         reportData = JSON.parse(localStorage.getItem('lastReportDetails'));
         console.log('[DEBUG] Report from localStorage:', reportData);
     }
 
+    /* ---------- Display report data or fallback if missing ---------- */
     if (reportData) {
         console.log('[INFO] Processing report data');
         displayFaultType.textContent = reportData.faultType || 'לא ידוע';
@@ -131,20 +141,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const city = addressData.city || addressData.town || addressData.village || '';
                         const street = addressData.road || '';
                         const houseNumber = addressData.house_number || '';
-                        
-                        // *** כאן הקוד החדש שיפעיל את פונקציית העדכון בשרת ***
-                        // רק אם הדיווח לא עבר עדכון כזה בעבר (כלומר, שדות הכתובת ריקים)
-                        // ואם ה-reportId זמין
+
+                        /* ---------- Update report location in DB only if address fields empty ---------- */
                         if (lastReportId && (!reportData.location.city || !reportData.location.street)) {
                             console.log('[INFO] Updating report location in DB based on geocoded data.');
-                            const updatedReport = await updateReportLocation(lastReportId, city, street, houseNumber,latitude, longitude);
+                            const updatedReport = await updateReportLocation(lastReportId, city, street, houseNumber, latitude, longitude);
                             if (updatedReport) {
-                                // אם העדכון הצליח, נעדכן את אובייקט reportData כדי להציג את הנתונים החדשים
                                 reportData.location.city = updatedReport.location.city;
                                 reportData.location.street = updatedReport.location.street;
                             }
                         }
-                        // *** סוף הקוד החדש ***
 
                         const formattedLocation = `${city}, ${street}${houseNumber ? ' ' + houseNumber : ''}`.trim();
                         console.log('[DEBUG] Formatted location from GPS:', formattedLocation);
@@ -175,15 +181,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayTime.textContent = 'לא ידוע';
         }
         displayDescription.textContent = reportData.faultDescription || 'אין תיאור';
+
+        /* ---------- Display media preview if available ---------- */
         if (reportData.media && reportData.media !== 'no media') {
             const mediaUrl = `${API_BASE_URL}/media/${reportData.media}`;
             const mimeType = reportData.mediaMimeType;
-            console.log('[DEBUG] Media ID:', reportData.mediaId);
+            console.log('[DEBUG] Media ID:', reportData.media);
             console.log('[DEBUG] Media URL:', mediaUrl);
             console.log('[DEBUG] Media MIME type:', mimeType);
+
             mediaPreview.src = '';
             let existingVideo = document.getElementById('reportMediaVideoPreview');
             if (existingVideo) existingVideo.remove();
+
             if (mimeType && mimeType.startsWith('image/')) {
                 mediaPreview.src = mediaUrl;
                 mediaPreview.style.display = 'block';
@@ -207,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             mediaPreview.style.display = 'none';
         }
     } else {
+        /* ---------- No report data fallback ---------- */
         console.error('[ERROR] No report data found');
         displayFaultType.textContent = 'אין נתונים';
         displayLocation.textContent = 'אין נתונים';
@@ -216,6 +227,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayMedia.textContent = 'אין נתונים';
         mediaPreview.style.display = 'none';
     }
+
+    /* ---------- Event listeners for navigation buttons ---------- */
     if (goToMyReportsBtn) {
         goToMyReportsBtn.addEventListener('click', () => {
             window.location.href = '/html/myReportsPage.html';

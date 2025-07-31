@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const displayTime           = document.getElementById('displayTime');
     const displayDescription    = document.getElementById('displayDescription');
     const mediaContainer        = document.getElementById('mediaContainer');
-    const editStatus            = document.getElementById('editStatus');  // זה עכשיו ה-DIV של custom-select
+    const editStatus            = document.getElementById('editStatus');  /* This is now the custom-select DIV */
     const editMunicipalityResponse = document.getElementById('editMunicipalityResponse');
     const saveChangesButton     = document.getElementById('saveChangesButton');
     const cancelChangesButton   = document.getElementById('cancelChangesButton');
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch(`${BASE_URL}/api/reports/${id}`);
             if (!response.ok) {
-                if (response.status === 404) throw new Error('דיווח לא נמצא.');
-                throw new Error(`שגיאה בשליפת דיווח: ${response.statusText}`);
+                if (response.status === 404) throw new Error('Report not found.');
+                throw new Error(`Error fetching report: ${response.statusText}`);
             }
             return await response.json();
         } catch (error) {
@@ -72,29 +72,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadStatusOptions() {
         try {
             const response = await fetch(`${BASE_URL}/api/status-options`);
-            if (!response.ok) throw new Error('שגיאה בטעינת סטטוסים מהשרת');
+            if (!response.ok) throw new Error('Error loading statuses from server');
 
             const statuses = await response.json();
 
             const selectedDiv = editStatus.querySelector('.selected');
             const optionsList = editStatus.querySelector('.options');
 
-            optionsList.innerHTML = ''; // נקה את הרשימה
+            optionsList.innerHTML = ''; /* Clear the list */
 
             statuses.forEach(status => {
                 const li = document.createElement('li');
                 li.textContent = status.name;
-                li.dataset.value = status.value; // ערך פנימי
+                li.dataset.value = status.value; /* internal value */
                 optionsList.appendChild(li);
             });
 
-            // בחר את הסטטוס הנוכחי אם קיים בדיווח
+            /* Select current status if exists in report */
             if (currentReport && currentReport.status) {
                 const normalizedStatus = currentReport.status.toLowerCase().replace(/_/g, '-');
                 const selectedStatus = statuses.find(s => s.value === normalizedStatus);
                 if (selectedStatus) {
                     selectedDiv.textContent = selectedStatus.name;
-                    // מסמן את האופציה הנבחרת
+                    /* Mark the selected option */
                     optionsList.querySelectorAll('li').forEach(li => {
                         li.classList.toggle('selected', li.dataset.value === normalizedStatus);
                     });
@@ -105,14 +105,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 editStatus.dataset.value = '';
             }
 
-            // אירוע פתיחה וסגירה של הרשימה
+            /* Open/close dropdown event */
             editStatus.addEventListener('click', () => {
                 editStatus.classList.toggle('open');
                 const expanded = editStatus.classList.contains('open');
                 editStatus.setAttribute('aria-expanded', expanded);
             });
 
-            // אירוע בחירת אופציה
+            /* Option selection event */
             optionsList.querySelectorAll('li').forEach(li => {
                 li.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             });
 
-            // סגירת הרשימה בלחיצה מחוץ
+            /* Close dropdown on outside click */
             document.addEventListener('click', e => {
                 if (!editStatus.contains(e.target)) {
                     editStatus.classList.remove('open');
@@ -134,9 +134,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
         } catch (err) {
-            console.error('שגיאה בטעינת סטטוסים:', err);
+            console.error('Error loading statuses:', err);
             const optionsList = editStatus.querySelector('.options');
-            optionsList.innerHTML = '<li>שגיאה בטעינה</li>';
+            optionsList.innerHTML = '<li>Error loading statuses</li>';
         }
     }
 
@@ -168,14 +168,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                             displayLocation.textContent = 'מיקום לפי GPS';
                         }
                     } catch (err) {
-                        console.error('שגיאה ב-reverse geocode:', err);
+                        console.error('Error in reverse geocode:', err);
                         displayLocation.textContent = 'מיקום לפי GPS';
                     }
                 } else {
                     displayLocation.textContent = 'מיקום לפי GPS';
                 }
             } else {
-                displayLocation.textContent = 'סוג מיקום לא נתמך';
+                displayLocation.textContent = 'Unsupported location type';
             }
         } else {
             displayLocation.textContent = 'לא הוזן מיקום';
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const mediaUrl = `${BASE_URL}/api/media/${report.media}`;
             try {
                 const headResponse = await fetch(mediaUrl, { method: 'HEAD' });
-                if (!headResponse.ok) throw new Error('שגיאה בקבלת מידע על המדיה');
+                if (!headResponse.ok) throw new Error('Error fetching media info');
                 const contentType = headResponse.headers.get('Content-Type') || '';
                 if (contentType.startsWith('image/')) {
                     const img = document.createElement('img');
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             mediaContainer.textContent = 'אין מדיה מצורפת.';
         }
 
-        // עדכון תצוגת סטטוס בעברית (להראות בתצוגה, לא לעריכה)
+        /* Update Hebrew status display (for viewing only, not editing) */
         const normalizedStatus = (report.status || '').toLowerCase().replace(/_/g, '-');
         const statusHebrew     = statusTranslations[normalizedStatus] || 'לא ידוע';
         const displayStatus = document.getElementById('displayStatus');
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 report.municipalityResponse || 'טרם התקבלה תגובה מהרשות המקומית.';
         }
 
-        // לא משנים את editStatus כאן כי הוא נטען אחרי בפונקציה loadStatusOptions
+        /* Do not modify editStatus here as it is loaded later in loadStatusOptions */
         if (editMunicipalityResponse) editMunicipalityResponse.value = report.municipalityResponse || '';
     }
 
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (saveChangesButton) {
         saveChangesButton.addEventListener('click', async () => {
-            // במקום editStatus.value משתמשים בערך השמור ב-dataset.value
+            /* Use dataset.value instead of editStatus.value */
             const selectedValue = editStatus.dataset.value || 'in-progress';
             const updatedData = {
                 status: selectedValue,

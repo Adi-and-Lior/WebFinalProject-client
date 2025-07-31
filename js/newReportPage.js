@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- הגדרת אלמנטי HTML ---
+    /* ---------- Define key DOM elements for form interaction ---------- */
     const backButton = document.getElementById('backButton');
     const reportForm = document.querySelector('.report-form');
     const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
 
-    // אלמנטים של סוג תקלה
+    /* ---------- Fault type custom select elements and related inputs ---------- */
     const faultTypeSelect = document.querySelector('[data-select-id="fault-type"]');
     const faultTypeOptionsContainer = faultTypeSelect ? faultTypeSelect.querySelector('.options') : null;
     const faultTypeHiddenInput = document.getElementById('fault-type-hidden');
@@ -16,44 +16,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     const faultTypeStatusIcon = faultTypeSelect ? faultTypeSelect.closest('.input-container')?.querySelector('.asterisk') : null;
     const faultDescriptionStatusIcon = faultDescriptionTextarea ? faultDescriptionTextarea.closest('.frame-textarea')?.querySelector('.validation-icon') : null;
 
-    // אלמנטים של מיקום (מותאמים ל-custom select)
-    const customLocationSelect = document.getElementById('locationSelect'); // זהו ה-div עם data-select-id="location"
+    /* ---------- Location custom select and related elements ---------- */
+    const customLocationSelect = document.getElementById('locationSelect');
     const locationSelectedDiv = customLocationSelect ? customLocationSelect.querySelector('.selected') : null;
     const locationOptionsContainer = customLocationSelect ? customLocationSelect.querySelector('.options') : null;
     const locationHiddenInput = document.getElementById('location-hidden');
     const manualAddressSection = document.getElementById('manualAddressSection');
-    const citySelect = document.getElementById('citySelect'); // זה עדיין <select> רגיל
-    const streetSelect = document.getElementById('streetSelect'); // זה עדיין <select> רגיל
+    const citySelect = document.getElementById('citySelect');
+    const streetSelect = document.getElementById('streetSelect');
     const houseNumberInput = document.getElementById('houseNumberInput');
-
     const locationStatusIcon = customLocationSelect ? customLocationSelect.closest('.input-container')?.querySelector('.asterisk') : null;
     const cityStatusIcon = citySelect ? citySelect.closest('.input-container')?.querySelector('.asterisk') : null;
     const streetStatusIcon = streetSelect ? streetSelect.closest('.input-container')?.querySelector('.asterisk') : null;
     const houseNumberStatusIcon = houseNumberInput ? houseNumberInput.closest('.input-container')?.querySelector('.asterisk') : null;
 
-
-    // אלמנטים של העלאת מדיה (כעת custom-select)
-    const mediaUploadCustomSelect = document.getElementById('mediaUploadSelect'); // ה-div החדש של ה-custom select
+    /* ---------- Media upload custom select and inputs ---------- */
+    const mediaUploadCustomSelect = document.getElementById('mediaUploadSelect');
     const mediaUploadSelectedDiv = mediaUploadCustomSelect ? mediaUploadCustomSelect.querySelector('.selected') : null;
     const mediaUploadOptionsContainer = mediaUploadCustomSelect ? mediaUploadCustomSelect.querySelector('.options') : null;
-    const uploadHiddenInput = document.getElementById('upload-hidden'); // הקלט הנסתר החדש
-    
-    // קטעי מדיה מפוצלים
-    const fileUploadSection = document.getElementById('fileUploadSection'); // הסקשן החדש לקובץ
-    const cameraSection = document.getElementById('cameraSection'); // הסקשן החדש למצלמה
-    
+    const uploadHiddenInput = document.getElementById('upload-hidden');
+    const fileUploadSection = document.getElementById('fileUploadSection');
+    const cameraSection = document.getElementById('cameraSection');
     const mediaFileInput = document.getElementById('media-file');
     const uploadStatusIcon = mediaUploadCustomSelect ? mediaUploadCustomSelect.closest('.input-container')?.querySelector('.asterisk') : null;
-    const mediaFileStatusIcon = mediaFileInput ? mediaFileInput.closest('.input-container')?.querySelector('.asterisk') : null; // אייקון של קלט הקובץ
+    const mediaFileStatusIcon = mediaFileInput ? mediaFileInput.closest('.input-container')?.querySelector('.asterisk') : null;
 
-    // אלמנטים של מצלמה
+    /* ---------- Camera elements ---------- */
     const video = document.getElementById('cameraPreview');
     const captureButton = document.getElementById('capture');
     const canvas = document.getElementById('canvas');
     let capturedBlob = null;
     let stream = null;
 
-    // משתנים למיקום וכתובת
+    /* ---------- Variables to store location and address info ---------- */
     let currentLat = null;
     let currentLon = null;
     let locationString = '';
@@ -62,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let manualLon = null;
     let manualFullAddress = '';
 
-    // פרטי משתמש מ-localStorage
+    /* ---------- User data from localStorage ---------- */
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     let currentUsername = 'Anonymous';
     let currentUserId = 'anonymous';
@@ -70,63 +65,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     let citiesData = [];
     let streetsData = [];
 
-    // --- פונקציות עזר ---
+    /* ---------- Constants for icon paths ---------- */
     const V_ICON_PATH = '../images/V_icon.svg';
     const ASTERISK_ICON_PATH = '../images/asterisk.svg';
 
+    /* ---------- Update status icon next to input based on validity or selection ---------- */
     function updateStatusIcon(inputElement, iconElement) {
         if (!inputElement || !iconElement) return;
 
-        // עבור אלמנטי select רגילים (כמו citySelect, streetSelect)
         if (inputElement.tagName === 'SELECT') {
-            if (inputElement.value !== '') {
-                iconElement.src = V_ICON_PATH;
-            } else {
-                iconElement.src = ASTERISK_ICON_PATH;
-            }
+            /* ---------- Regular select element: show check if value selected ---------- */
+            iconElement.src = inputElement.value !== '' ? V_ICON_PATH : ASTERISK_ICON_PATH;
             return;
         }
 
-        // עבור קלט קובץ
         if (inputElement.type === 'file') {
-            if (inputElement.files && inputElement.files.length > 0) {
-                iconElement.src = V_ICON_PATH;
-            } else {
-                iconElement.src = ASTERISK_ICON_PATH;
-            }
+            /* ---------- File input: show check if file(s) selected ---------- */
+            iconElement.src = (inputElement.files && inputElement.files.length > 0) ? V_ICON_PATH : ASTERISK_ICON_PATH;
             return;
         }
 
-        // עבור custom-select div (כמו faultTypeSelect, customLocationSelect, mediaUploadCustomSelect)
-        if (inputElement.classList && inputElement.classList.contains('custom-select')) {
+        if (inputElement.classList?.contains('custom-select')) {
+            /* ---------- Custom select div: check if .selected has non-empty data-value ---------- */
             const selected = inputElement.querySelector('.selected');
-            if (selected && selected.dataset.value && selected.dataset.value.trim() !== '') {
-                iconElement.src = V_ICON_PATH;
-            } else {
-                iconElement.src = ASTERISK_ICON_PATH;
-            }
+            iconElement.src = (selected?.dataset.value?.trim() !== '') ? V_ICON_PATH : ASTERISK_ICON_PATH;
             return;
         }
 
-        // עבור קלט רגיל (כמו houseNumberInput) או textarea (faultDescriptionTextarea)
-        if (inputElement.value && inputElement.value.trim() !== '') {
-            iconElement.src = V_ICON_PATH;
-        } else {
-            iconElement.src = ASTERISK_ICON_PATH;
-        }
+        /* ---------- Regular input or textarea: show check if value is non-empty ---------- */
+        iconElement.src = (inputElement.value && inputElement.value.trim() !== '') ? V_ICON_PATH : ASTERISK_ICON_PATH;
     }
 
-    // --- פונקציות טעינת נתונים ---
+    /* ---------- Load cities list from API and populate citySelect dropdown ---------- */
     async function loadCities() {
-        console.log("loadCities: --- מתחיל טעינת ערים ---");
+        console.log("loadCities: Starting to fetch cities...");
         try {
             const res = await fetch(`${API_BASE_URL}/api/cities`);
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             const data = await res.json();
 
-            // CitySelect הוא select רגיל, לכן הלוגיקה נשארת זהה
             if (!citySelect) {
-                console.warn("loadCities: לא נמצא אלמנט עם id citySelect");
+                console.warn("loadCities: citySelect element not found");
                 return;
             }
 
@@ -150,18 +129,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            console.log("loadCities: הושלם בהצלחה");
+            console.log("loadCities: Successfully loaded cities");
         } catch (err) {
-            console.error("loadCities: שגיאה בשליפת ערים:", err);
+            console.error("loadCities: Error fetching cities:", err);
         }
     }
 
+    /* ---------- Load streets list for a given city and populate streetSelect dropdown ---------- */
     async function loadStreetsForCity(cityName) {
-        console.log(`loadStreetsForCity: --- מתחיל טעינת רחובות עבור עיר: '${cityName}' ---`);
+        console.log(`loadStreetsForCity: Starting to fetch streets for city '${cityName}'`);
 
-        // streetSelect הוא select רגיל, לכן הלוגיקה נשארת זהה
         if (!streetSelect) {
-            console.warn("loadStreetsForCity: Street select element not found.");
+            console.warn("loadStreetsForCity: streetSelect element not found");
             return;
         }
 
@@ -178,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         streetSelect.appendChild(defaultOption);
 
         if (!cityName) {
-            console.log("אין עיר נבחרת, הפונקציה תצא.");
+            console.log("No city selected, exiting function");
             updateStatusIcon(streetSelect, streetStatusIcon);
             $(streetSelect).select2({
                 placeholder: "בחר רחוב",
@@ -211,85 +190,77 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStatusIcon(streetSelect, streetStatusIcon);
 
         } catch (err) {
-            console.error("שגיאה בטעינת רחובות:", err);
+            console.error("loadStreetsForCity: Error loading streets:", err);
             streetSelect.innerHTML = '<option value="">שגיאה בטעינת רחובות</option>';
             updateStatusIcon(streetSelect, streetStatusIcon);
         } finally {
-            console.log("loadStreetsForCity: --- הסתיים ---");
+            console.log("loadStreetsForCity: Finished");
         }
     }
 
-  async function loadFaultTypes() {
-    console.log('[INFO] טוען סוגי תקלות מהשרת...');
-    if (!faultTypeOptionsContainer || !faultTypeSelected || !faultTypeHiddenInput || !faultTypeSelect) {
-        console.warn('loadFaultTypes: אלמנטים נדרשים לסוג תקלה לא נמצאו. דילוג על הטעינה.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/fault-types`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch fault types');
+    /* ---------- Load fault types from API and build custom select options ---------- */
+    async function loadFaultTypes() {
+        console.log('[INFO] Loading fault types from server...');
+        if (!faultTypeOptionsContainer || !faultTypeSelected || !faultTypeHiddenInput || !faultTypeSelect) {
+            console.warn('loadFaultTypes: Required fault type elements missing, skipping load.');
+            return;
         }
 
-        const faultTypes = await response.json();
-        console.log('[DEBUG] סוגי תקלות התקבלו:', faultTypes);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/fault-types`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch fault types');
+            }
 
-        // נקה אפשרויות קודמות
-        faultTypeOptionsContainer.innerHTML = '';
+            const faultTypes = await response.json();
+            console.log('[DEBUG] Received fault types:', faultTypes);
 
-        // יצירת אפשרויות ה-li
-        faultTypes.forEach(type => {
-            const option = document.createElement('li');
-            option.textContent = type.label;
-            option.dataset.value = type.value;
-            option.setAttribute('role', 'option');
+            faultTypeOptionsContainer.innerHTML = '';
 
-            // *** הוספת ה-Event Listener המתוקן לכל אפשרות ***
-            option.addEventListener('click', (e) => {
-                // מונע מהלחיצה להתפשט לאלמנטים עליונים ולגרום לסגירה כפולה
-                e.stopPropagation();
+            faultTypes.forEach(type => {
+                const option = document.createElement('li');
+                option.textContent = type.label;
+                option.dataset.value = type.value;
+                option.setAttribute('role', 'option');
 
-                // עדכן את הטקסט והערך של האלמנט הנבחר
-                faultTypeSelected.textContent = type.label;
-                faultTypeSelected.dataset.value = type.value;
-                faultTypeHiddenInput.value = type.value; // עדכן את הקלט הנסתר לטופס
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
 
-                // סגור את ה-custom select
-                faultTypeSelect.setAttribute('aria-expanded', 'false');
-                faultTypeSelect.classList.remove('open');
+                    faultTypeSelected.textContent = type.label;
+                    faultTypeSelected.dataset.value = type.value;
+                    faultTypeHiddenInput.value = type.value;
 
-                // הסר מחלקת 'selected' מכל האפשרויות והוסף לאפשרות שנלחצה
-                faultTypeOptionsContainer.querySelectorAll('li').forEach(li => li.classList.remove('selected'));
-                option.classList.add('selected');
+                    faultTypeSelect.setAttribute('aria-expanded', 'false');
+                    faultTypeSelect.classList.remove('open');
 
-                // עדכן דרישות תיאור וסטטוס אייקונים
-                updateFaultDescriptionRequirement();
-                updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
+                    faultTypeOptionsContainer.querySelectorAll('li').forEach(li => li.classList.remove('selected'));
+                    option.classList.add('selected');
+
+                    updateFaultDescriptionRequirement();
+                    updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
+                });
+
+                faultTypeOptionsContainer.appendChild(option);
             });
 
-            faultTypeOptionsContainer.appendChild(option);
-        });
+            if (faultTypes.length > 0 && !faultTypeSelected.dataset.value) {
+                faultTypeSelected.textContent = "בחר תקלה";
+                faultTypeSelected.dataset.value = "";
+                faultTypeHiddenInput.value = "";
+            }
 
-        // הגדר ערך התחלתי אם עדיין לא הוגדר (לדוגמה, מטופס שנשמר קודם)
-        if (faultTypes.length > 0 && !faultTypeSelected.dataset.value) {
-            // אין לבחור באופן אוטומטי. "בחר תקלה" צריך להיות ברירת מחדל.
-            // נשאיר את זה ריק ונשלוט ב-placeholder בלבד.
-            faultTypeSelected.textContent = "בחר תקלה";
-            faultTypeSelected.dataset.value = "";
-            faultTypeHiddenInput.value = "";
+        } catch (error) {
+            console.error('loadFaultTypes: Error loading fault types:', error);
+            alert('שגיאה בטעינת סוגי התקלות. אנא רענן את הדף או נסה שוב מאוחר יותר.');
         }
-
-    } catch (error) {
-        console.error('שגיאה בטעינת סוגי התקלות:', error);
-        alert('שגיאה בטעינת סוגי התקלות. אנא רענן את הדף או נסה שוב מאוחר יותר.');
     }
-}
+
+    /* ---------- Load location modes from API and build custom select options ---------- */
     async function loadLocationModes() {
-        console.log('[INFO] טוען מצבי מיקום מהשרת...');
+        console.log('[INFO] Loading location modes from server...');
         if (!customLocationSelect || !locationSelectedDiv || !locationOptionsContainer || !locationHiddenInput) {
-            console.warn('loadLocationModes: אלמנטים נדרשים ל-custom select של מיקום לא נמצאו. דילוג על הטעינה.');
+            console.warn('loadLocationModes: Required location custom select elements missing, skipping load.');
             return;
         }
 
@@ -300,12 +271,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(errorData.message || 'Failed to fetch location modes');
             }
             const locationModes = await response.json();
-            console.log('[DEBUG] מצבי מיקום התקבלו:', locationModes);
+            console.log('[DEBUG] Received location modes:', locationModes);
 
-            // נקה אפשרויות קודמות
             locationOptionsContainer.innerHTML = '';
 
-            // הוסף רק את האפשרויות מהשרת. "בחר מיקום" יהיה placeholder בלבד.
             locationModes.forEach(mode => {
                 const optionItem = document.createElement('li');
                 optionItem.className = 'option';
@@ -320,40 +289,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                     locationSelectedDiv.dataset.value = mode.value;
                     locationHiddenInput.value = mode.value;
                     customLocationSelect.setAttribute('aria-expanded', 'false');
-                    customLocationSelect.classList.remove('open'); // סגור את ה-custom select
+                    customLocationSelect.classList.remove('open');
 
-                    // הסר מחלקת 'selected' מכל האפשרויות והוסף לאפשרות שנלחצה
                     locationOptionsContainer.querySelectorAll('li').forEach(li => li.classList.remove('selected'));
                     optionItem.classList.add('selected');
 
-                    handleLocationSelection(); // קרא ל-handler כדי לעדכן את ה-UI על בסיס הבחירה
+                    handleLocationSelection();
                     updateStatusIcon(customLocationSelect, locationStatusIcon);
                 });
             });
 
-            // הגדר את "בחר מיקום" כברירת המחדל הנבחרת בתיבה הראשית בלבד
             locationSelectedDiv.textContent = "בחר מיקום";
-            locationSelectedDiv.dataset.value = ""; // ודא ש-data-value ריק
+            locationSelectedDiv.dataset.value = "";
             locationHiddenInput.value = "";
-            // אין צורך לסמן כ-selected אף אופציה פנימית, כי "בחר מיקום" אינו אופציה פנימית
 
-            // קרא ל-handleLocationSelection פעם אחת כדי לוודא שקטע הכתובת הידנית מוסתר
-            // אם "בחר מיקום" נבחר, מבלי להפעיל getCurrentLocation()
             handleLocationSelection();
 
             updateStatusIcon(customLocationSelect, locationStatusIcon);
-            console.log('[INFO] מצבי מיקום נטענו בהצלחה.');
+            console.log('[INFO] Location modes loaded successfully.');
         } catch (error) {
-            console.error('שגיאה בטעינת מיקומים:', error);
+            console.error('loadLocationModes: Error loading location modes:', error);
             alert('שגיאה בטעינת מיקומים. אנא רענן את הדף או נסה שוב מאוחר יותר.');
         }
     }
 
-    // --- לוגיקה עבור Custom Select של העלאת מדיה ---
+    /* ---------- Load media upload options from API and build custom select options ---------- */
     async function loadMediaOptions() {
-        console.log('[INFO] טוען אפשרויות מדיה מהשרת...');
+        console.log('[INFO] Loading media options from server...');
         if (!mediaUploadCustomSelect || !mediaUploadSelectedDiv || !mediaUploadOptionsContainer || !uploadHiddenInput) {
-            console.warn('loadMediaOptions: אלמנטים נדרשים ל-custom select של העלאת מדיה לא נמצאו. דילוג על הטעינה.');
+            console.warn('loadMediaOptions: Required media upload custom select elements missing, skipping load.');
             return;
         }
 
@@ -364,12 +328,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(errorData.message || 'Failed to fetch media options');
             }
             const mediaOptions = await response.json();
-            console.log('[DEBUG] אפשרויות מדיה התקבלו:', mediaOptions);
+            console.log('[DEBUG] Received media options:', mediaOptions);
 
-            // נקה אפשרויות קודמות
             mediaUploadOptionsContainer.innerHTML = '';
 
-            // הוסף רק את האפשרויות מהשרת. "בחר אפשרות" יהיה placeholder בלבד.
             mediaOptions.forEach(opt => {
                 const optionItem = document.createElement('li');
                 optionItem.className = 'option';
@@ -382,92 +344,94 @@ document.addEventListener('DOMContentLoaded', async () => {
                 optionItem.addEventListener('click', () => {
                     mediaUploadSelectedDiv.textContent = opt.label;
                     mediaUploadSelectedDiv.dataset.value = opt.value;
-                    uploadHiddenInput.value = opt.value; // עדכן את הקלט הנסתר
+                    uploadHiddenInput.value = opt.value;
                     mediaUploadCustomSelect.setAttribute('aria-expanded', 'false');
-                    mediaUploadCustomSelect.classList.remove('open'); // סגור את ה-custom select
+                    mediaUploadCustomSelect.classList.remove('open');
 
-                    // הסר מחלקת 'selected' מכל האפשרויות והוסף לאפשרות שנלחצה
                     mediaUploadOptionsContainer.querySelectorAll('li').forEach(li => li.classList.remove('selected'));
                     optionItem.classList.add('selected');
 
-                    updateMediaUploadVisibility(); // קרא ל-handler כדי לעדכן את ה-UI
+                    updateMediaUploadVisibility();
                     updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
                 });
             });
 
-            // הגדר את "בחר אפשרות" כברירת המחדל הנבחרת בתיבה הראשית בלבד
             mediaUploadSelectedDiv.textContent = "בחר אפשרות";
-            mediaUploadSelectedDiv.dataset.value = ""; // ודא ש-data-value ריק
+            mediaUploadSelectedDiv.dataset.value = "";
             uploadHiddenInput.value = "";
-            // אין צורך לסמן כ-selected אף אופציה פנימית
 
-            // קרא ל-updateMediaUploadVisibility פעם אחת כדי לוודא שקטעי המדיה מוסתרים
-            // כשה-placeholder נבחר
             updateMediaUploadVisibility();
 
             updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
-            console.log('[INFO] אפשרויות מדיה נטענו בהצלחה.');
+            console.log('[INFO] Media options loaded successfully.');
         } catch (error) {
-            console.error('שגיאה בטעינת אפשרויות מדיה:', error);
+            console.error('loadMediaOptions: Error loading media options:', error);
             alert('שגיאה בטעינת אפשרויות מדיה. אנא רענן את הדף או נסה שוב מאוחר יותר.');
         }
     }
-
-
     // --- פונקציות עדכון UI/לוגיקה ---
     function updateFaultDescriptionRequirement() {
-        // וודא ש-faultTypeSelected אינו null לפני גישה ל-dataset שלו
-        const selectedFaultType = faultTypeSelected ? faultTypeSelected.dataset.value : '';
+    /* ---------- Get selected fault type value safely ---------- */
+    const selectedFaultType = faultTypeSelected ? faultTypeSelected.dataset.value : '';
 
-        if (selectedFaultType === 'אחר') {
-            if (faultDescriptionTextarea) faultDescriptionTextarea.setAttribute('required', 'true');
-            if (faultDescriptionOptionalIndicator) faultDescriptionOptionalIndicator.style.display = 'none';
-            if (faultDescriptionRequiredIndicator) faultDescriptionRequiredIndicator.style.display = 'inline';
-            if (faultDescriptionValidationIconContainer) faultDescriptionValidationIconContainer.style.display = 'inline-block';
-        } else {
-            if (faultDescriptionTextarea) faultDescriptionTextarea.removeAttribute('required');
-            if (faultDescriptionOptionalIndicator) faultDescriptionOptionalIndicator.style.display = 'inline';
-            if (faultDescriptionRequiredIndicator) faultDescriptionRequiredIndicator.style.display = 'none';
-            if (faultDescriptionValidationIconContainer) faultDescriptionValidationIconContainer.style.display = 'none';
-            if (faultDescriptionTextarea) faultDescriptionTextarea.value = '';
-        }
-        updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
-        updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon);
+    if (selectedFaultType === 'אחר') {
+        /* ---------- For 'Other' fault type: make description required and update UI indicators ---------- */
+        if (faultDescriptionTextarea) faultDescriptionTextarea.setAttribute('required', 'true');
+        if (faultDescriptionOptionalIndicator) faultDescriptionOptionalIndicator.style.display = 'none';
+        if (faultDescriptionRequiredIndicator) faultDescriptionRequiredIndicator.style.display = 'inline';
+        if (faultDescriptionValidationIconContainer) faultDescriptionValidationIconContainer.style.display = 'inline-block';
+    } else {
+        /* ---------- For other fault types: remove required attribute and reset UI indicators ---------- */
+        if (faultDescriptionTextarea) faultDescriptionTextarea.removeAttribute('required');
+        if (faultDescriptionOptionalIndicator) faultDescriptionOptionalIndicator.style.display = 'inline';
+        if (faultDescriptionRequiredIndicator) faultDescriptionRequiredIndicator.style.display = 'none';
+        if (faultDescriptionValidationIconContainer) faultDescriptionValidationIconContainer.style.display = 'none';
+        if (faultDescriptionTextarea) faultDescriptionTextarea.value = '';
     }
+    /* ---------- Update status icons for fault type select and description textarea ---------- */
+    updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
+    updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon);
+}   
 
     function handleLocationSelection() {
-        // קבל את הערך הנבחר מתוך ה-div.selected של ה-custom select
+        /* ---------- Get selected location type from custom select ---------- */
         const selectedLocationType = locationSelectedDiv ? locationSelectedDiv.dataset.value : '';
-        console.log(`handleLocationSelection: סוג מיקום נבחר: ${selectedLocationType}`);
+        console.log(`handleLocationSelection: Selected location type: ${selectedLocationType}`);
 
-        // וודא שאלמנטים קיימים לפני ניסיון שינוי שלהם
+        /* ---------- Check for required address section elements before proceeding ---------- */
         if (!manualAddressSection || !citySelect || !streetSelect || !houseNumberInput) {
-            console.warn('handleLocationSelection: חסרים אלמנטים של קטע כתובת. דילוג על עדכוני UI.');
+            console.warn('handleLocationSelection: Missing address section elements, skipping UI updates.');
             return;
         }
 
-        if (selectedLocationType === 'loc2') { // הזנת כתובת ידנית
+        if (selectedLocationType === 'loc2') { // Manual address input
+            /* ---------- Show manual address input fields and set appropriate required attributes ---------- */
             manualAddressSection.style.display = 'block';
             citySelect.setAttribute('required', 'true');
             streetSelect.setAttribute('required', 'true');
-            houseNumberInput.removeAttribute('required'); // מספר בית הוא אופציונלי עבור הזנה ידנית
+            houseNumberInput.removeAttribute('required'); // House number optional in manual input
 
-            loadStreetsForCity(citySelect.value.trim()); // טען רחובות על בסיס בחירת העיר הנוכחית
+            /* ---------- Load streets for the currently selected city ---------- */
+            loadStreetsForCity(citySelect.value.trim());
+
+            /* ---------- Update status icons for city and street selects ---------- */
             updateStatusIcon(citySelect, cityStatusIcon);
             updateStatusIcon(streetSelect, streetStatusIcon);
 
-            // טפל באייקון מספר הבית על בסיס סטטוס ה-required הנוכחי שלו (שלרוב אינו נדרש עבור ידני)
+            /* ---------- Update house number icon based on required status ---------- */
             if (houseNumberInput.hasAttribute('required') && houseNumberStatusIcon) {
                 updateStatusIcon(houseNumberInput, houseNumberStatusIcon);
             } else if (houseNumberStatusIcon) {
-                houseNumberStatusIcon.src = ASTERISK_ICON_PATH; // אם לא נדרש, הצג כוכבית
+                houseNumberStatusIcon.src = ASTERISK_ICON_PATH; // Show asterisk if not required
             }
 
+            /* ---------- Reset geolocation variables for manual input ---------- */
             currentLat = null;
             currentLon = null;
             locationString = '';
             currentCity = '';
-        } else if (selectedLocationType === 'loc1') { // זיהוי מיקום אוטומטי
+        } else if (selectedLocationType === 'loc1') { // Automatic location detection
+            /* ---------- Hide manual address section and clear input fields ---------- */
             manualAddressSection.style.display = 'none';
             citySelect.removeAttribute('required');
             citySelect.value = '';
@@ -475,15 +439,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             streetSelect.value = '';
             houseNumberInput.removeAttribute('required');
             houseNumberInput.value = '';
-            streetsData = []; // נקה רחובות נטענים
+            streetsData = []; // Clear loaded streets data
 
-            // איפוס אייקוני סטטוס לשדות ידניים
+            /* ---------- Reset status icons for manual address fields ---------- */
             if (cityStatusIcon) cityStatusIcon.src = ASTERISK_ICON_PATH;
             if (streetStatusIcon) streetStatusIcon.src = ASTERISK_ICON_PATH;
             if (houseNumberStatusIcon) houseNumberStatusIcon.src = ASTERISK_ICON_PATH;
 
-            getCurrentLocation(); // נסה לקבל את המיקום הנוכחי
-        } else { // ברירת מחדל / אין בחירה (כאשר selectedLocationType === "")
+            /* ---------- Attempt to get current geolocation ---------- */
+            getCurrentLocation();
+        } else {
+            /* ---------- Default case: no selection or empty value, reset form and status ---------- */
             manualAddressSection.style.display = 'none';
             citySelect.removeAttribute('required');
             citySelect.value = '';
@@ -491,9 +457,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             streetSelect.value = '';
             houseNumberInput.removeAttribute('required');
             houseNumberInput.value = '';
-            streetsData = []; // נקה רחובות נטענים
+            streetsData = [];
 
-            // איפוס אייקוני סטטוס לשדות ידניים
             if (cityStatusIcon) cityStatusIcon.src = ASTERISK_ICON_PATH;
             if (streetStatusIcon) streetStatusIcon.src = ASTERISK_ICON_PATH;
             if (houseNumberStatusIcon) houseNumberStatusIcon.src = ASTERISK_ICON_PATH;
@@ -503,41 +468,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             locationString = '';
             currentCity = '';
         }
-        updateStatusIcon(customLocationSelect, locationStatusIcon); // עדכן סטטוס עבור ה-custom select של המיקום
+        /* ---------- Update status icon for the custom location select ---------- */
+        updateStatusIcon(customLocationSelect, locationStatusIcon);
     }
 
     async function getCurrentLocation() {
         if (!navigator.geolocation) {
             alert("הדפדפן שלך אינו תומך ב-Geolocation. אנא השתמש באפשרות 'הזנת מיקום ידנית'.");
-            // אם geolocation לא נתמך, עבור אוטומטית למצב ידני
+            /* ---------- Fallback to manual input if geolocation unsupported ---------- */
             if (locationSelectedDiv && locationHiddenInput && customLocationSelect) {
                 locationSelectedDiv.textContent = 'הזנה ידנית';
                 locationSelectedDiv.dataset.value = 'loc2';
                 locationHiddenInput.value = 'loc2';
-                handleLocationSelection(); // חשב מחדש את ה-UI על בסיס הבחירה החדשה
+                handleLocationSelection();
             }
             return;
         }
-        console.log("getCurrentLocation: מנסה לקבל מיקום נוכחי...");
+        console.log("getCurrentLocation: Attempting to get current position...");
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 currentLat = position.coords.latitude;
                 currentLon = position.coords.longitude;
-                console.log(`getCurrentLocation: מיקום נוכחי: קו רוחב ${currentLat}, קו אורך ${currentLon}`);
+                console.log(`getCurrentLocation: Current position: lat ${currentLat}, lon ${currentLon}`);
                 try {
+                    /* ---------- Reverse geocode coordinates to address ---------- */
                     const response = await fetch(`${API_BASE_URL}/api/geocode?latlng=${currentLat},${currentLon}`);
                     const data = await response.json();
-                    console.log("getCurrentLocation: תגובת API לגיאוקודינג:", data);
+                    console.log("getCurrentLocation: Geocoding API response:", data);
                     if (data.status === 'OK' && data.results.length > 0) {
                         locationString = data.results[0].formatted_address;
                         const addressComponents = data.results[0].address_components;
+                        /* ---------- Extract city component from address ---------- */
                         const cityComponent = addressComponents.find(component =>
                             component.types.includes('locality') || component.types.includes('administrative_area_level_1')
                         );
                         currentCity = cityComponent ? cityComponent.long_name : '';
-                        console.log("getCurrentLocation: כתובת מפוענחת:", locationString, "עיר:", currentCity);
+                        console.log("getCurrentLocation: Parsed address:", locationString, "City:", currentCity);
                         alert(`המיקום זוהה: ${locationString}`);
-                        updateStatusIcon(customLocationSelect, locationStatusIcon); // עדכן אייקון לאחר זיהוי מוצלח
+                        updateStatusIcon(customLocationSelect, locationStatusIcon);
                     } else {
                         locationString = `קו רוחב: ${currentLat}, קו אורך: ${currentLon}`;
                         currentCity = '';
@@ -545,7 +513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         updateStatusIcon(customLocationSelect, locationStatusIcon);
                     }
                 } catch (err) {
-                    console.error("getCurrentLocation: שגיאת גיאוקודינג:", err);
+                    console.error("getCurrentLocation: Geocoding error:", err);
                     locationString = `קו רוחב: ${currentLat}, קו אורך: ${currentLon}`;
                     currentCity = '';
                     alert("המיקום זוהה, אך לא ניתן לקבל כתובת מלאה.");
@@ -553,7 +521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             },
             (error) => {
-                console.error("getCurrentLocation: שגיאה בקבלת מיקום נוכחי:", error);
+                console.error("getCurrentLocation: Geolocation error:", error);
                 let errorMessage = "אירעה שגיאה בעת זיהוי המיקום.";
                 switch (error.code) {
                     case error.PERMISSION_DENIED:
@@ -570,13 +538,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         break;
                 }
                 alert(errorMessage);
-                // עבור למצב ידני אם זיהוי המיקום נכשל
+                /* ---------- Switch to manual location input on failure ---------- */
                 if (locationSelectedDiv && locationHiddenInput && customLocationSelect) {
                     locationSelectedDiv.textContent = 'הזנה ידנית';
                     locationSelectedDiv.dataset.value = 'loc2';
                     locationHiddenInput.value = 'loc2';
                 }
-                handleLocationSelection(); // הפעל מחדש עדכון UI
+                handleLocationSelection();
                 currentLat = null;
                 currentLon = null;
                 locationString = '';
@@ -590,25 +558,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         );
     }
+
     async function geocodeAddress(city, street, houseNumber) {
+        /* ---------- Compose address string for geocoding ---------- */
         const address = `${houseNumber ? houseNumber + ' ' : ''}${street}, ${city}, Israel`;
-        console.log(`geocodeAddress: מנסה לפענח כתובת גיאוגרפית: '${address}'`);
+        console.log(`geocodeAddress: Attempting to geocode address: '${address}'`);
         try {
+            /* ---------- Call geocoding API ---------- */
             const response = await fetch(`${API_BASE_URL}/api/geocode?address=${encodeURIComponent(address)}`);
             const data = await response.json();
-            console.log("geocodeAddress: תגובת API לגיאוקודינג:", data);
+            console.log("geocodeAddress: API response:", data);
             if (data.status === 'OK' && data.results.length > 0) {
+                /* ---------- Extract location coordinates and formatted address ---------- */
                 const location = data.results[0].geometry.location;
                 manualLat = location.lat;
                 manualLon = location.lng;
                 manualFullAddress = data.results[0].formatted_address;
-                console.log(`geocodeAddress: פוענח בהצלחה. קו רוחב: ${manualLat}, קו אורך: ${manualLon}, כתובת מלאה: ${manualFullAddress}`);
+                console.log(`geocodeAddress: Successfully geocoded. Lat: ${manualLat}, Lon: ${manualLon}, Address: ${manualFullAddress}`);
                 return { lat: manualLat, lng: manualLon, fullAddress: manualFullAddress };
             } else {
                 manualLat = null;
                 manualLon = null;
                 manualFullAddress = '';
-                console.warn(`geocodeAddress: לא ניתן לפענח כתובת גיאוגרפית: ${address}. סטטוס: ${data.status}`);
+                console.warn(`geocodeAddress: Unable to geocode address: ${address}. Status: ${data.status}`);
                 alert(`לא ניתן למצוא קואורדינטות עבור הכתובת שסופקה: ${address}. אנא בדוק את הכתובת.`);
                 return null;
             }
@@ -616,61 +588,64 @@ document.addEventListener('DOMContentLoaded', async () => {
             manualLat = null;
             manualLon = null;
             manualFullAddress = '';
-            console.error('geocodeAddress: שגיאה במהלך גיאוקודינג:', err);
+            console.error('geocodeAddress: Geocoding error:', err);
             alert(`אירעה שגיאה במהלך גיאוקודינג כתובת: ${err.message}`);
             return null;
         }
     }
 
     function updateMediaUploadVisibility() {
-        // קבל את הערך הנבחר מתוך ה-div.selected של ה-custom select של העלאת המדיה
+        /* ---------- Get selected media upload option ---------- */
         const selectedUploadOption = mediaUploadSelectedDiv ? mediaUploadSelectedDiv.dataset.value : '';
-        console.log('updateMediaUploadVisibility: אפשרות העלאה נבחרה:', selectedUploadOption);
+        console.log('updateMediaUploadVisibility: Selected upload option:', selectedUploadOption);
 
-        // הסתר את כל הסקשנים וקבע required/accept כ-false כברירת מחדל
+        /* ---------- Hide all media upload sections and reset attributes ---------- */
         if (fileUploadSection) fileUploadSection.style.display = 'none';
         if (cameraSection) cameraSection.style.display = 'none';
-        
+
         if (mediaFileInput) {
             mediaFileInput.removeAttribute('required');
             mediaFileInput.removeAttribute('accept');
             mediaFileInput.removeAttribute('capture');
-            mediaFileInput.value = ''; // נקה קלט קובץ
-            updateStatusIcon(mediaFileInput, mediaFileStatusIcon); // עדכן סטטוס
-        }
-        
-        stopCamera(); // וודא שהמצלמה נעצרת כשמחליפים אפשרויות
-        capturedBlob = null; // אפס את הבלוב של התמונה שצולמה
-        const existingPreview = document.getElementById('capturedImagePreview');
-        if (existingPreview) {
-            existingPreview.remove(); // הסר תצוגה מקדימה של תמונה שצולמה
+            mediaFileInput.value = ''; // Clear file input
+            updateStatusIcon(mediaFileInput, mediaFileStatusIcon);
         }
 
-        if (selectedUploadOption === 'option1') { // אפשרות מצלמה
+        /* ---------- Stop camera and clear captured blob & preview ---------- */
+        stopCamera();
+        capturedBlob = null;
+        const existingPreview = document.getElementById('capturedImagePreview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+
+        if (selectedUploadOption === 'option1') { // Camera option
             if (cameraSection) cameraSection.style.display = 'block';
-            fileUploadSection.style.display = 'none';
-            mediaFileInput.removeAttribute('required');
-            video.style.display = 'block';
-            captureButton.style.display = 'inline-block';
+            if (fileUploadSection) fileUploadSection.style.display = 'none';
+            if (mediaFileInput) {
+                mediaFileInput.removeAttribute('required');
+            }
+            if (video) video.style.display = 'block';
+            if (captureButton) captureButton.style.display = 'inline-block';
             startCamera();
-            // עבור מצלמה, קובץ המדיה אינו 'נדרש' דרך ה-input type="file"
-            // אלא דרך זה ש-capturedBlob יכיל נתונים.
-            // לכן אין צורך להגדיר mediaFileInput.setAttribute('required', 'true'); כאן.
-        } else if (selectedUploadOption === 'option2') { // אפשרות העלאת קובץ
+            /* ---------- For camera input, file input is not required; blob used instead ---------- */
+        } else if (selectedUploadOption === 'option2') { // File upload option
             if (fileUploadSection) fileUploadSection.style.display = 'block';
             if (mediaFileInput) {
                 mediaFileInput.setAttribute('required', 'true');
                 mediaFileInput.setAttribute('accept', 'image/*,video/*');
-                updateStatusIcon(mediaFileInput, mediaFileStatusIcon); // עדכן אייקון לאחר הגדרת required
+                updateStatusIcon(mediaFileInput, mediaFileStatusIcon);
             }
         }
-        console.log('updateMediaUploadVisibility: שדה קובץ מדיה נדרש:', mediaFileInput?.hasAttribute('required'));
-        updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon); // עדכן אייקון עבור הסלקט הראשי
+        console.log('updateMediaUploadVisibility: File input required:', mediaFileInput?.hasAttribute('required'));
+        /* ---------- Update status icon for the media upload custom select ---------- */
+        updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
     }
 
- async function startCamera() {
+    async function startCamera() {
         try {
             stopCamera();
+            /* ---------- Request access to user's camera ---------- */
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
             video.play();
@@ -678,26 +653,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error('startCamera: Error accessing camera:', err);
             alert('Cannot enable camera: ' + err.message + '\nPlease ensure you have a camera connected and allow access to it in your browser settings.');
-            uploadSelect.value = '';
+            if (uploadSelect) uploadSelect.value = '';
             updateMediaUploadVisibility();
         }
     }
+
     function stopCamera() {
         if (stream) {
+            /* ---------- Stop all video tracks to release camera ---------- */
             stream.getTracks().forEach(track => {
                 track.stop();
                 console.log("stopCamera: Camera track stopped.");
             });
             stream = null;
         }
-        video.srcObject = null;
-        video.pause();
+        if (video) {
+            video.srcObject = null;
+            video.pause();
+        }
         console.log("stopCamera: Camera stopped.");
     }
+
+    /* ---------- Capture button event listeners to take photo from camera stream ---------- */
     if (captureButton) {
         captureButton.addEventListener('click', () => {
             if (!stream) {
                 alert('No active camera stream to capture image.');
+                return;
+            }
+            if (!canvas || !video) {
+                console.error('Canvas or video element not found.');
                 return;
             }
             const context = canvas.getContext('2d');
@@ -719,23 +704,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     captureButton.parentNode.insertBefore(img, captureButton.nextSibling);
                 }
                 stopCamera();
-                video.style.display = 'none';
-                captureButton.style.display = 'none';
+                if (video) video.style.display = 'none';
+                if (captureButton) captureButton.style.display = 'none';
                 updateStatusIcon({ type: 'file', files: [capturedBlob] }, mediaFileStatusIcon);
             }, 'image/jpeg');
         });
     }
-    // --- אתחולים ו-Event Listeners ---
 
-    // Event listener לכפתור חזור
-    if (backButton) {
-        backButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            window.location.href = '/html/homePageCitizen.html';
-        });
-    }
-
-    // Event listener לכפתור צילום במצלמה
+    /* ---------- Additional capture button listener with alert and image preview inside camera section ---------- */
     if (captureButton) {
         captureButton.addEventListener('click', () => {
             if (!stream) {
@@ -758,78 +734,83 @@ document.addEventListener('DOMContentLoaded', async () => {
                 img.style.maxWidth = '100px';
                 img.style.maxHeight = '100px';
                 img.style.marginTop = '10px';
-                img.style.display = 'block'; // כדי להבטיח שהתמונה מוצגת בנפרד
+                img.style.display = 'block'; // Ensure image is displayed separately
                 const existingPreview = document.getElementById('capturedImagePreview');
                 if (existingPreview) {
                     existingPreview.src = img.src;
                 } else {
                     img.id = 'capturedImagePreview';
-                    // הוסף את התצוגה המקדימה בתוך cameraSection
                     if (cameraSection) {
                         cameraSection.appendChild(img);
                     }
                 }
                 stopCamera();
-                // אין צורך להסתיר video ו-captureButton כאן כי הם בתוך cameraSection
-                // והוא נשאר גלוי במצב 'option1'.
-                updateStatusIcon({ type: 'file', files: [capturedBlob] }, mediaFileStatusIcon); // נעדכן את אייקון הקובץ באמצעות בלוב שנוצר
+                /* ---------- Keep video and captureButton visible since cameraSection remains visible ---------- */
+                updateStatusIcon({ type: 'file', files: [capturedBlob] }, mediaFileStatusIcon);
             }, 'image/jpeg');
         });
     }
 
-    // --- Event Listeners עבור Custom Select של סוג תקלה ---
+    /* ---------- Event listener for back button navigation ---------- */
+    if (backButton) {
+        backButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.location.href = '/html/homePageCitizen.html';
+        });
+    }
+
+    /* ---------- Custom select event listeners for fault type ---------- */
     if (faultTypeSelect) {
         faultTypeSelect.addEventListener('click', (e) => {
-            e.stopPropagation(); // מנע מסגירה מיידית בלחיצת מסמך
+            e.stopPropagation();
             faultTypeSelect.classList.toggle('open');
             faultTypeSelect.setAttribute('aria-expanded', String(faultTypeSelect.classList.contains('open')));
         });
-        // הערה: ה-listener ללחיצה על אלמנט 'li' בודד מוגדר בתוך loadFaultTypes
-        updateFaultDescriptionRequirement(); // קריאה ראשונית להגדרת סטטוס נדרש ואייקון
+        /* ---------- Initial update of fault description requirement and status icon ---------- */
+        updateFaultDescriptionRequirement();
         updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
     }
 
+    /* ---------- Input listener for fault description textarea ---------- */
     if (faultDescriptionTextarea) {
         faultDescriptionTextarea.addEventListener('input', () => {
             updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon);
         });
-        updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon); // קריאה ראשונית
+        updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon);
     }
 
-    // --- Event Listeners עבור Custom Select של מיקום ---
+    /* ---------- Custom select event listeners for location selection ---------- */
     if (customLocationSelect) {
         locationSelectedDiv.addEventListener('click', (e) => {
-            e.stopPropagation(); // מנע מסגירה מיידית בלחיצת מסמך
+            e.stopPropagation();
             customLocationSelect.classList.toggle('open');
             customLocationSelect.setAttribute('aria-expanded', String(customLocationSelect.classList.contains('open')));
         });
-        // הערה: ה-listener ללחיצה על אלמנט 'li' בודד מוגדר בתוך loadLocationModes
-        // אין צורך ב-listener ישיר ל-'change' על customLocationSelect עצמו, מכיוון ש-'handleLocationSelection'
-        // נקראת מתוך ה-listener ללחיצה על אפשרות בודדת.
-        updateStatusIcon(customLocationSelect, locationStatusIcon); // קריאה ראשונית
+        updateStatusIcon(customLocationSelect, locationStatusIcon);
     }
 
+    /* ---------- Event listeners for city select using jQuery Select2 plugin ---------- */
     if (citySelect) {
-        // שימוש ב-.on של jQuery עבור אירועי Select2
         $(citySelect).on('select2:select', (e) => {
             const selectedCity = e.params.data.text.trim();
-            console.log(`select2: עיר נבחרה: '${selectedCity}'`);
+            console.log(`select2: Selected city: '${selectedCity}'`);
             loadStreetsForCity(selectedCity);
             updateStatusIcon(citySelect, cityStatusIcon);
         });
         citySelect.addEventListener('blur', () => {
-            // נסה לפענח כתובת גיאוגרפית רק אם גם עיר וגם רחוב נבחרו
+            /* ---------- Trigger geocoding on blur if city and street selected ---------- */
             if (citySelect.value.trim() && streetSelect && streetSelect.value.trim()) {
                 geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput ? houseNumberInput.value.trim() : '');
             }
-            updateStatusIcon(citySelect, cityStatusIcon); // עדכן אייקון ב-blur
+            updateStatusIcon(citySelect, cityStatusIcon);
         });
     }
 
+    /* ---------- Event listeners for street select using jQuery Select2 plugin ---------- */
     if (streetSelect) {
         $(streetSelect).on('select2:select', () => {
             updateStatusIcon(streetSelect, streetStatusIcon);
-            // הפעל גיאוקודינג לאחר בחירת רחוב אם גם עיר נבחרה
+            /* ---------- Trigger geocoding if city is also selected ---------- */
             if (citySelect && citySelect.value.trim() && streetSelect.value.trim()) {
                 geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput ? houseNumberInput.value.trim() : '');
             }
@@ -838,16 +819,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (citySelect && citySelect.value.trim() && streetSelect.value.trim()) {
                 geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput ? houseNumberInput.value.trim() : '');
             }
-            updateStatusIcon(streetSelect, streetStatusIcon); // עדכן אייקון ב-blur
+            updateStatusIcon(streetSelect, streetStatusIcon);
         });
     }
 
-    if (houseNumberInput) {
+
+        if (houseNumberInput) {
+        /* ---------- Update status icon on house number input ---------- */
         houseNumberInput.addEventListener('input', () => {
             if (houseNumberStatusIcon) {
                 updateStatusIcon(houseNumberInput, houseNumberStatusIcon);
             }
         });
+        /* ---------- On blur, trigger geocoding if city and street are selected, update status icon ---------- */
         houseNumberInput.addEventListener('blur', () => {
             if (citySelect && citySelect.value.trim() && streetSelect && streetSelect.value.trim()) {
                 geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput.value.trim());
@@ -858,207 +842,214 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- Event Listeners עבור Custom Select של העלאת מדיה ---
+    // --- Event Listeners for custom media upload select ---
     if (mediaUploadCustomSelect) {
         mediaUploadSelectedDiv.addEventListener('click', (e) => {
-            e.stopPropagation(); // מנע מסגירה מיידית בלחיצת מסמך
+            e.stopPropagation(); // Prevent immediate closing when clicking on the select
             mediaUploadCustomSelect.classList.toggle('open');
             mediaUploadCustomSelect.setAttribute('aria-expanded', String(mediaUploadCustomSelect.classList.contains('open')));
         });
-        // הערה: ה-listener ללחיצה על אלמנט 'li' בודד מוגדר בתוך loadMediaOptions
-        updateMediaUploadVisibility(); // קריאה ראשונית
+        /* ---------- Note: individual 'li' click listeners set inside loadMediaOptions ---------- */
+        updateMediaUploadVisibility(); // Initial call to set visibility based on default/selected option
         updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
     }
 
     if (mediaFileInput) {
+        /* ---------- Update status icon when user selects a file ---------- */
         mediaFileInput.addEventListener('change', () => {
             updateStatusIcon(mediaFileInput, mediaFileStatusIcon);
         });
-        updateStatusIcon(mediaFileInput, mediaFileStatusIcon); // קריאה ראשונית
+        updateStatusIcon(mediaFileInput, mediaFileStatusIcon); // Initial update
     }
 
-    // --- שליחת טופס דיווח ---
+    // --- Form submission handling ---
     if (reportForm) {
         reportForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-
-            // בצע אימות טופס (האימות המובנה של הדפדפן עשוי לא לתפוס הכל עם custom selects)
-            // מומלץ לבצע אימות מותאם אישית עבור שדות custom select נדרשים.
-            // לדוגמה, לבדוק אם faultTypeSelected.dataset.value ריק.
             if (!reportForm.checkValidity() || !faultTypeSelected?.dataset.value || !locationSelectedDiv?.dataset.value || !mediaUploadSelectedDiv?.dataset.value) {
-                 alert('אנא מלא את כל השדות הנדרשים.');
-                 return;
-            }
-
-            const faultType = faultTypeSelected.textContent.trim(); // קבל מהטקסט הנבחר של ה-custom select
-            const faultDescription = faultDescriptionTextarea.value.trim();
-            const locationType = locationSelectedDiv.dataset.value; // קבל מה-data-value הנבחר של ה-custom select
-            let locationData = {};
-
-            if (locationType === 'loc2') { // כתובת ידנית
-                // בצע גיאוקודינג מחדש אם קווי רוחב/אורך הם null (לדוגמה, אם המשתמש הזין כתובת אך לא עשה blur/הפעיל גיאוקודינג)
-                if (manualLat === null || manualLon === null) {
-                    const geocoded = await geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput.value.trim());
-                    if (!geocoded) {
-                        alert('לא ניתן לשלוח דיווח. לא ניתן לקבוע קואורדינטות עבור הכתובת הידנית. אנא בדוק את הכתובת ונסה שוב.');
-                        return;
-                    }
-                }
-                locationData = {
-                    type: 'manual',
-                    city: citySelect.value.trim(),
-                    street: streetSelect.value.trim(),
-                    houseNumber: houseNumberInput.value.trim(),
-                    latitude: manualLat,
-                    longitude: manualLon,
-                    address: manualFullAddress || `${houseNumberInput.value.trim()} ${streetSelect.value.trim()}, ${citySelect.value.trim()}` // חלופי לכתובת מלאה
-                };
-            } else if (locationType === 'loc1') { // מיקום נוכחי
-                if (currentLat === null || currentLon === null) {
-                    alert('לא ניתן לשלוח דיווח. המיקום הנוכחי לא זוהה. אנא נסה שוב או בחר במיקום ידני.');
-                    return;
-                }
-                locationData = {
-                    type: 'current',
-                    city: currentCity || '',
-                    latitude: currentLat,
-                    longitude: currentLon,
-                    address: locationString || ''
-                };
-            } else { // אם לא נבחר סוג מיקום (placeholder)
-                alert('אנא בחר סוג מיקום.');
+                alert('אנא מלא את כל השדות הנדרשים.');
                 return;
             }
 
-            const uploadOption = mediaUploadSelectedDiv.dataset.value; // קבל מה-data-value של ה-custom select
-            let mediaToUpload = null;
+    /* ---------- Collect form data from custom selects and inputs ---------- */
+    const faultType = faultTypeSelected.textContent.trim();
+    const faultDescription = faultDescriptionTextarea.value.trim();
+    const locationType = locationSelectedDiv.dataset.value;
+    let locationData = {};
 
-            if (uploadOption === 'option1') { // צילום במצלמה
-                if (capturedBlob) {
-                    mediaToUpload = new File([capturedBlob], 'captured_image.jpeg', { type: 'image/jpeg' });
-                } else {
-                    alert('לא צולמה תמונה. אנא צלם תמונה או בחר באפשרות אחרת.');
-                    return;
-                }
-            } else if (uploadOption === 'option2') { // העלאת קובץ
-                if (mediaFileInput.files.length > 0) {
-                    mediaToUpload = mediaFileInput.files[0];
-                } else {
-                    alert('אנא בחר קובץ תמונה/וידאו מספריית המדיה שלך.');
-                    return;
-                }
-            } else { // אם לא נבחרה אפשרות העלאה (placeholder)
-                alert('אנא בחר אפשרות להעלאת מדיה (מצלמה או ספריית תמונות).');
+    if (locationType === 'loc2') { // Manual address input
+        /* ---------- If lat/lon null, attempt geocoding before submit ---------- */
+        if (manualLat === null || manualLon === null) {
+            const geocoded = await geocodeAddress(citySelect.value.trim(), streetSelect.value.trim(), houseNumberInput.value.trim());
+            if (!geocoded) {
+                alert('לא ניתן לשלוח דיווח. לא ניתן לקבוע קואורדינטות עבור הכתובת הידנית. אנא בדוק את הכתובת ונסה שוב.');
                 return;
             }
-
-            const formData = new FormData();
-            formData.append('faultType', faultType);
-            formData.append('faultDescription', faultDescription);
-            formData.append('locationType', locationType);
-            formData.append('locationDetails', JSON.stringify(locationData));
-            formData.append('uploadOption', uploadOption);
-
-            if (mediaToUpload) {
-                formData.append('mediaFile', mediaToUpload);
-            }
-
-            formData.append('createdBy', currentUsername);
-            formData.append('creatorId', currentUserId);
-
-            console.log('נתוני דיווח מוכנים לשליחת לקוח:', {
-                faultType,
-                faultDescription,
-                locationType,
-                locationDetails: locationData,
-                uploadOption,
-                mediaFile: mediaToUpload ? mediaToUpload.name : 'No file',
-                createdBy: currentUsername,
-                creatorId: currentUserId
-            });
-
-            try {
-                console.log('[Client] mediaToUpload:', mediaToUpload);
-                console.log('[Client] mediaToUpload name:', mediaToUpload?.name);
-                console.log('[Client] mediaToUpload size:', mediaToUpload?.size);
-                console.log('[Client] mediaToUpload type:', mediaToUpload?.type);
-
-                for (const pair of formData.entries()) {
-                    console.log(pair[0] + ': ' + pair[1]);
-                }
-
-                const res = await fetch(`${API_BASE_URL}/api/reports`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    console.log('הדיווח נשלח בהצלחה:', data.message);
-                    let displayLocation = '';
-                    if (locationType === 'loc1') {
-                        displayLocation = locationString || `המיקום הנוכחי שלך (קו רוחב: ${currentLat}, קו אורך: ${currentLon})`;
-                    } else if (locationType === 'loc2') {
-                        displayLocation = `עיר: ${citySelect.value} , רחוב: ${streetSelect.value} ,`;
-                        if (houseNumberInput.value) {
-                            displayLocation += ` מספר בית: ${houseNumberInput.value}`;
-                        }
-                    }
-
-                    // שמור פרטים ב-localStorage עבור העמוד הבא
-                    localStorage.setItem('lastReportDetails', JSON.stringify({
-                        faultTypeLabel: faultTypeSelected ? faultTypeSelected.textContent.trim() : '',
-                        faultDescription: faultDescription,
-                        location: displayLocation,
-                        timestamp: new Date().toISOString(),
-                        mediaId: data.mediaGridFSId || 'no media',
-                        mediaMimeType: data.mediaMimeType || null
-                    }));
-                    localStorage.setItem('lastReportId', data.reportId || data._id);
-
-                    alert('הדיווח נשלח בהצלחה!');
-                    window.location.href = '/html/reportReceivedPage.html';
-                } else {
-                    alert('שגיאה בשליחת דיווח: ' + data.message);
-                }
-            } catch (error) {
-                console.error('שגיאה בשליחת דיווח:', error);
-                alert('אירעה שגיאה בעת שליחת הדיווח. אנא נסה שוב מאוחר יותר.');
-            }
-        });
+        }
+        /* ---------- Compose location details object for manual address ---------- */
+        locationData = {
+            type: 'manual',
+            city: citySelect.value.trim(),
+            street: streetSelect.value.trim(),
+            houseNumber: houseNumberInput.value.trim(),
+            latitude: manualLat,
+            longitude: manualLon,
+            address: manualFullAddress || `${houseNumberInput.value.trim()} ${streetSelect.value.trim()}, ${citySelect.value.trim()}`
+        };
+    } else if (locationType === 'loc1') { // Current detected location
+        /* ---------- Validate current location coordinates before submit ---------- */
+        if (currentLat === null || currentLon === null) {
+            alert('לא ניתן לשלוח דיווח. המיקום הנוכחי לא זוהה. אנא נסה שוב או בחר במיקום ידני.');
+            return;
+        }
+        /* ---------- Compose location details object for current location ---------- */
+        locationData = {
+            type: 'current',
+            city: currentCity || '',
+            latitude: currentLat,
+            longitude: currentLon,
+            address: locationString || ''
+        };
+    } else { // No location type selected
+        alert('אנא בחר סוג מיקום.');
+        return;
     }
 
-    // --- טעינות נתונים ראשוניות ---
-    // וודא שהמשתמש מחובר לפני שממשיכים בטעינות אסינכרוניות
+    const uploadOption = mediaUploadSelectedDiv.dataset.value;
+    let mediaToUpload = null;
+
+    if (uploadOption === 'option1') { // Camera capture
+        if (capturedBlob) {
+            /* ---------- Convert captured blob to File object for upload ---------- */
+            mediaToUpload = new File([capturedBlob], 'captured_image.jpeg', { type: 'image/jpeg' });
+        } else {
+            alert('לא צולמה תמונה. אנא צלם תמונה או בחר באפשרות אחרת.');
+            return;
+        }
+    } else if (uploadOption === 'option2') { // File upload from media library
+        if (mediaFileInput.files.length > 0) {
+            mediaToUpload = mediaFileInput.files[0];
+        } else {
+            alert('אנא בחר קובץ תמונה/וידאו מספריית המדיה שלך.');
+            return;
+        }
+    } else { // No media upload option selected
+        alert('אנא בחר אפשרות להעלאת מדיה (מצלמה או ספריית תמונות).');
+        return;
+    }
+
+    /* ---------- Prepare FormData object to send to backend ---------- */
+    const formData = new FormData();
+    formData.append('faultType', faultType);
+    formData.append('faultDescription', faultDescription);
+    formData.append('locationType', locationType);
+    formData.append('locationDetails', JSON.stringify(locationData));
+    formData.append('uploadOption', uploadOption);
+
+    if (mediaToUpload) {
+        formData.append('mediaFile', mediaToUpload);
+    }
+
+    formData.append('createdBy', currentUsername);
+    formData.append('creatorId', currentUserId);
+
+    console.log('Prepared report data for submission:', {
+        faultType,
+        faultDescription,
+        locationType,
+        locationDetails: locationData,
+        uploadOption,
+        mediaFile: mediaToUpload ? mediaToUpload.name : 'No file',
+        createdBy: currentUsername,
+        creatorId: currentUserId
+    });
+
+    try {
+        /* ---------- Debug logging FormData contents ---------- */
+        console.log('[Client] mediaToUpload:', mediaToUpload);
+        console.log('[Client] mediaToUpload name:', mediaToUpload?.name);
+        console.log('[Client] mediaToUpload size:', mediaToUpload?.size);
+        console.log('[Client] mediaToUpload type:', mediaToUpload?.type);
+
+        for (const pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        /* ---------- Send POST request to API endpoint with form data ---------- */
+        const res = await fetch(`${API_BASE_URL}/api/reports`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            console.log('Report submitted successfully:', data.message);
+
+            /* ---------- Prepare display string for location ---------- */
+            let displayLocation = '';
+            if (locationType === 'loc1') {
+                displayLocation = locationString || `המיקום הנוכחי שלך (קו רוחב: ${currentLat}, קו אורך: ${currentLon})`;
+            } else if (locationType === 'loc2') {
+                displayLocation = `עיר: ${citySelect.value} , רחוב: ${streetSelect.value} ,`;
+                if (houseNumberInput.value) {
+                    displayLocation += ` מספר בית: ${houseNumberInput.value}`;
+                }
+            }
+
+            /* ---------- Store last report details in localStorage for next page ---------- */
+            localStorage.setItem('lastReportDetails', JSON.stringify({
+                faultTypeLabel: faultTypeSelected ? faultTypeSelected.textContent.trim() : '',
+                faultDescription: faultDescription,
+                location: displayLocation,
+                timestamp: new Date().toISOString(),
+                mediaId: data.mediaId || data.report?.media || 'no media',
+                mediaMimeType: data.mediaMimeType || null
+            }));
+            localStorage.setItem('lastReportId', data.reportId || data._id);
+
+            alert('הדיווח נשלח בהצלחה!');
+            window.location.href = '/html/reportReceivedPage.html';
+        } else {
+            alert('שגיאה בשליחת דיווח: ' + data.message);
+        }
+        } catch (error) {
+            console.error('Error sending report:', error);
+            alert('אירעה שגיאה בעת שליחת הדיווח. אנא נסה שוב מאוחר יותר.');
+        }
+    });
+}
+
+    // --- Initial data loading ---
+    // Ensure user is logged in before continuing with async loads
     if (loggedInUser) {
         currentUsername = loggedInUser.username;
         currentUserId = loggedInUser.userId;
-        console.log('משתמש מחובר:', currentUsername, 'ID:', currentUserId);
+        console.log('User logged in:', currentUsername, 'ID:', currentUserId);
     } else {
-        console.warn('אין משתמש מחובר ל-localStorage. מפנה מחדש...');
+        console.warn('No logged-in user found in localStorage. Redirecting...');
         alert('שגיאה: משתמש לא מחובר. אנא התחבר שוב.');
         window.location.href = '../index.html';
-        return; // עצור ביצוע אם אין משתמש מחובר
+        return; // Stop execution if no user
     }
 
-    // טען נתונים עבור כל אלמנטי custom/select
+    // Load data for all custom selects asynchronously
     await loadCities();
     await loadFaultTypes();
     await loadLocationModes();
-    await loadMediaOptions(); // טוען את האפשרויות ל-Custom Select החדש של המדיה
+    await loadMediaOptions(); // Load options for new custom media upload select
 
-    // עדכוני אייקונים ראשוניים עבור כל האלמנטים לאחר הטעינה
+    // Initial icon updates for all elements after loading
     updateStatusIcon(faultTypeSelect, faultTypeStatusIcon);
     updateStatusIcon(faultDescriptionTextarea, faultDescriptionStatusIcon);
     updateStatusIcon(customLocationSelect, locationStatusIcon);
     updateStatusIcon(citySelect, cityStatusIcon);
     updateStatusIcon(streetSelect, streetStatusIcon);
     updateStatusIcon(houseNumberInput, houseNumberStatusIcon);
-    updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon); // עדכון אייקון עבור ה-Custom Select החדש
+    updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
     updateStatusIcon(mediaFileInput, mediaFileStatusIcon);
 
-    // הוסף listener כללי למסמך לסגירת custom selects בלחיצה בחוץ
+    // Add global document listener to close custom selects on outside click
     document.addEventListener('click', (e) => {
         if (faultTypeSelect && !faultTypeSelect.contains(e.target)) {
             faultTypeSelect.classList.remove('open');
@@ -1073,5 +1064,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             mediaUploadCustomSelect.setAttribute('aria-expanded', 'false');
         }
     });
-
-}); // סוף DOMContentLoaded
+}); // End of DOMContentLoaded

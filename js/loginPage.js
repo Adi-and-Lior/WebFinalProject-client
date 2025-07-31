@@ -8,70 +8,91 @@ document.addEventListener('DOMContentLoaded', () => {
   const togglePassword = document.getElementById('togglePassword');
   const lockIcon = document.getElementById('lockIcon');
   let passwordVisible = false;
+
+  /* ---------- Toggle password visibility ---------- */
   togglePassword.addEventListener('click', () => {
-  passwordVisible = !passwordVisible;
-  passwordInput.type = passwordVisible ? 'text' : 'password';
-  togglePassword.src = passwordVisible ? '../images/eye_open.png' : '../images/eye_closed.png';
+    passwordVisible = !passwordVisible;
+    passwordInput.type = passwordVisible ? 'text' : 'password';
+    togglePassword.src = passwordVisible ? '../images/eye_open.png' : '../images/eye_closed.png';
   });
 
+  /* ---------- Show/hide lock icon and eye based on password input ---------- */
   passwordInput.addEventListener('input', () => {
-  if (passwordInput.value.trim() !== '') {
-    lockIcon.style.display = 'none';
-    togglePassword.style.display = 'block';
-  } else {
-    lockIcon.style.display = 'block';
-    togglePassword.style.display = 'none';
-  }
-});
+    if (passwordInput.value.trim() !== '') {
+      lockIcon.style.display = 'none';
+      togglePassword.style.display = 'block';
+    } else {
+      lockIcon.style.display = 'block';
+      togglePassword.style.display = 'none';
+    }
+  });
 
-// בתחילה להסתיר את כפתור העין אם אין טקסט
-togglePassword.style.display = 'none';
+  // Hide eye icon initially
+  togglePassword.style.display = 'none';
 
+  /* ---------- Debug logs for initialization ---------- */
   console.log('Selected user type on the login page:', selectedUserType);
   console.log('Login page script loaded');
   console.log('loginForm:', loginForm);
+
+  /* ---------- Check login form existence ---------- */
   if (!loginForm) {
-    console.warn("טופס התחברות לא נמצא. וודא שקיים אלמנט עם class 'login-form'.");
+    console.warn("Login form not found. Make sure there's an element with class 'login-form'.");
     return;
   }
+
+  /* ---------- Handle back button ---------- */
   if (backButton) {
-        backButton.addEventListener('click', () => window.history.back());
-    }
+    backButton.addEventListener('click', () => window.history.back());
+  }
+
+  /* ---------- Handle login form submission ---------- */
   loginForm.addEventListener('submit', async event => {
     console.log('Submit event triggered');
     event.preventDefault();
+
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
+
     if (!username || !password) {
       alert('אנא הזן שם משתמש וסיסמה.');
       return;
     }
+
     if (!selectedUserType) {
       alert('שגיאה: סוג משתמש לא נבחר. אנא חזור לדף הבחירה.');
-      console.error('selectedUserType הוא null או undefined.');
+      console.error('selectedUserType is null or undefined.');
       return;
     }
+
     try {
       const res  = await fetch(API_BASE_LOGIN, {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body   : JSON.stringify({ username, password, userType: selectedUserType })
       });
+
       const data = await res.json();
       console.log('Full server response:', data);
+
       if (!res.ok) {
         alert(data.error || 'שגיאת התחברות: שם משתמש או סיסמה שגויים.');
-        console.error('התחברות נכשלה מהשרת:', data.error || 'שגיאה לא ידועה');
+        console.error('Login failed from server:', data.error || 'Unknown error');
         return;
       }
+
       console.log('Login successful:', data.message);
       console.log('User data from server:', data.user);
+
       if (!data.user) {
-        console.warn('התשובה מהשרת חסרה עטיפת user.');
+        console.warn('Server response missing user object.');
         alert('שגיאה פנימית בשרת: נתוני משתמש חסרים בתגובה.');
         return;
       }
+
       const { username: loggedInUsername, userId, userType, city } = data.user;
+
+      /* ---------- Store user info in localStorage ---------- */
       localStorage.setItem('loggedInUserName', loggedInUsername);
       localStorage.setItem('loggedInUserId', userId); 
       localStorage.setItem('selectedUserType', userType); 
@@ -81,16 +102,20 @@ togglePassword.style.display = 'none';
         userType,
         city: city || null
       }));
+
       if ((userType || '').toLowerCase() === 'employee' && city) {
-          localStorage.setItem('loggedInUserCity', city);
+        localStorage.setItem('loggedInUserCity', city);
       } else {
-          localStorage.removeItem('loggedInUserCity');
+        localStorage.removeItem('loggedInUserCity');
       }
+
+      /* ---------- Debug logs for saved user info ---------- */
       console.log('User data saved to localStorage:', localStorage.getItem('loggedInUser'));
       console.log('loggedInUserName in LS:', localStorage.getItem('loggedInUserName'));
       console.log('loggedInUserId in LS:', localStorage.getItem('loggedInUserId'));
       console.log('selectedUserType in LS:', localStorage.getItem('selectedUserType'));
       console.log('loggedInUserCity in LS:', localStorage.getItem('loggedInUserCity'));
+
       alert('התחברת בהצלחה!');
       setTimeout(() => {
         if (selectedUserType === 'citizen') {
@@ -101,9 +126,10 @@ togglePassword.style.display = 'none';
           window.location.href = 'index.html';
         }
       }, 500);
+
     } catch (err) {
       alert('אירעה שגיאה בחיבור לשרת. אנא נסה שוב מאוחר יותר.');
-      console.error('שגיאת Fetch:', err);
+      console.error('Fetch error:', err);
     }
   });
 });

@@ -1,19 +1,20 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const backButton = document.getElementById('backButton');
   const reportsListContainer = document.querySelector('.reports-list-container');
-  const customSortSelect = document.getElementById('sortReportsDropdown'); // ה-custom select שלנו
+  const customSortSelect = document.getElementById('sortReportsDropdown');
   const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
   let currentUserId = loggedInUser ? loggedInUser.userId : null;
   let currentUserType = loggedInUser ? loggedInUser.userType : null;
   const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
 
+  /* ---------- Display message if user is not logged in ---------- */
   if (!currentUserId) {
     console.warn('אין משתמש מחובר. לא ניתן לאחזר דיווחים.');
     reportsListContainer.innerHTML = '<p class="no-reports-message">אנא התחבר כדי לראות את הדיווחים שלך.</p>';
     return;
   }
 
-  // פונקציה לקבלת כתובת מפענוח קואורדינטות - משאירה כפי שהיא
+  /* ---------- Reverse geocoding: converts coordinates to address ---------- */
   const getAddressFromCoordinates = async (lat, lon) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  /* ---------- Fetch reports from the server ---------- */
   async function fetchReports() {
     try {
       let url = `${API_BASE_URL}/api/reports`;
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error(errorData.message || 'כשל באחזור דיווחים מהשרת.');
       }
       let reports = await res.json();
-      console.log('דיווחים נטענו בהצלחה:', reports);
+      console.log('Reports fetched successfully:', reports);
       return reports;
     } catch (error) {
       console.error('שגיאה באחזור דיווחים:', error);
@@ -49,9 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  let allReports = [];
-  allReports = await fetchReports();
+  let allReports = await fetchReports();
 
+  /* ---------- Deletes a report (with confirmation) ---------- */
   async function deleteReport(reportId) {
     if (!confirm('האם אתה בטוח שברצונך למחוק דיווח זה?')) {
       return;
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  /* ---------- Creates a report card element dynamically ---------- */
   async function createReportCardAsync(report) {
     const reportCard = document.createElement('section');
     reportCard.classList.add('report-card');
@@ -85,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // פענוח מיקום
+    /* ---------- Formats address text based on location type ---------- */
     let locationText = 'לא ידוע';
     if (report.location) {
       if (report.location.type === 'manual') {
@@ -111,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const displayDate = timestamp ? timestamp.toLocaleDateString('he-IL') : 'לא ידוע';
     const displayTime = timestamp ? timestamp.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : '';
 
+    /* ---------- Determines report status and assigns class ---------- */
     let statusClass = '';
     let statusText = '';
     switch (report.status) {
@@ -131,6 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         statusText = report.status || 'לא ידוע';
     }
 
+    /* ---------- Builds media section based on MIME type ---------- */
     let mediaHtml = '';
     if (report.media) {
       const mediaUrl = `${API_BASE_URL}/api/media/${report.media}`;
@@ -150,6 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                    </section>`;
     }
 
+    /* ---------- Builds the report card HTML ---------- */
     reportCard.innerHTML = `
       <section class="report-details">
           <h3 class="report-type">${report.faultType}</h3>
@@ -175,6 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return reportCard;
   }
 
+  /* ---------- Displays all report cards in the container ---------- */
   async function displayReports(reports) {
     reportsListContainer.innerHTML = '';
     if (reports.length === 0) {
@@ -187,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  /* ---------- Sorts reports based on selected criteria ---------- */
   function sortReports(reports, sortType) {
     const sortedReports = [...reports];
     switch (sortType) {
@@ -206,26 +214,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     return sortedReports;
   }
 
-  // פונקציה לקבלת הערך הנוכחי מתוך ה-custom select
+  /* ---------- Gets the selected value from the custom select ---------- */
   function getCurrentSortValue() {
     const selectedDiv = customSortSelect.querySelector('.selected');
     return selectedDiv ? selectedDiv.dataset.value : 'date-default';
   }
 
-  // עדכון טקסט ומחלקות ב-custom select לפי הערך
+  /* ---------- Updates the custom select UI based on selection ---------- */
   function updateCustomSelectUI(selectedValue) {
     const selectedDiv = customSortSelect.querySelector('.selected');
     const optionsList = customSortSelect.querySelector('.options');
-    // עדכן טקסט לפי הערך
     const option = [...optionsList.children].find(li => li.dataset.value === selectedValue);
     if (option) {
       selectedDiv.textContent = option.textContent;
-      // עדכון מחלקות ב-li
       optionsList.querySelectorAll('li').forEach(li => li.classList.remove('selected'));
       option.classList.add('selected');
     }
   }
 
+  /* ---------- Sets up custom dropdown select event listeners ---------- */
   if (customSortSelect) {
     const selectedDiv = customSortSelect.querySelector('.selected');
     const optionsList = customSortSelect.querySelector('.options');
@@ -249,7 +256,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateCustomSelectUI(li.dataset.value);
         customSortSelect.setAttribute('aria-expanded', 'false');
         optionsList.style.display = 'none';
-        // סינון והצגה לפי הערך החדש
         displayReports(sortReports(allReports, li.dataset.value));
       });
     });
@@ -266,10 +272,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeAllCustomSelects();
     });
 
-    // אתחל את UI בהתבסס על הערך ההתחלתי
     updateCustomSelectUI(getCurrentSortValue());
   }
 
+  /* ---------- Navigates back to the citizen home page ---------- */
   if (backButton) {
     backButton.addEventListener('click', (event) => {
       event.preventDefault();
@@ -277,7 +283,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  /* ---------- Displays sorted reports initially ---------- */
   await displayReports(sortReports(allReports, getCurrentSortValue()));
 
-  console.log('myReportsPage.js נטען במלואו.');
+  console.log('myReportsPage.js fully loaded.');
 });

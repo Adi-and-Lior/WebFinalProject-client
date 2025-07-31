@@ -4,11 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const userNameDisplay = document.getElementById('userNameDisplay');
     const deleteProfileButton = document.getElementById('deleteProfileButton');
     const API_BASE_URL = 'https://webfinalproject-server.onrender.com';
+
+    /* ---------- Update user profile type display ---------- */
     function updateUserProfileText() {
-        const userProfileType = localStorage.getItem('selectedUserType'); 
-        console.log('User profile type from localStorage:', userProfileType); 
+        const userProfileType = localStorage.getItem('selectedUserType');
+        console.log('Fetched user profile type:', userProfileType);
+
         if (userProfileDisplay) {
-            let displayText = 'מחובר כ-אורח'; 
+            let displayText = 'מחובר כ-אורח';
             if (userProfileType === 'citizen') {
                 displayText = 'מחובר כ-אזרח';
             } else if (userProfileType === 'employee') {
@@ -18,16 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /* ---------- Update user name display ---------- */
     function updateUserName() {
         const userName = localStorage.getItem('loggedInUserName');
-        console.log('User name from localStorage:', userName); 
+        console.log('Fetched user name:', userName);
+
         if (userNameDisplay) {
             userNameDisplay.textContent = userName || 'אורח';
         }
     }
-    updateUserProfileText();
-    updateUserName(); 
 
+    updateUserProfileText();
+    updateUserName();
+
+    /* ---------- Logout functionality ---------- */
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem('selectedUserType');
@@ -37,14 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* ---------- Delete profile functionality ---------- */
     if (deleteProfileButton) {
         deleteProfileButton.addEventListener('click', async (event) => {
-            event.preventDefault(); 
+            event.preventDefault();
 
             const confirmDelete = confirm('האם אתה בטוח שברצונך למחוק את חשבונך וכל התקלות שדיווחת? פעולה זו בלתי הפיכה!');
 
             if (confirmDelete) {
-                const userId = localStorage.getItem('loggedInUserId'); 
+                const userId = localStorage.getItem('loggedInUserId');
 
                 if (!userId) {
                     alert('שגיאה: לא ניתן למצוא את מזהה המשתמש. אנא התחבר שוב.');
@@ -65,13 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.removeItem('loggedInUserName');
                         localStorage.removeItem('loggedInUserId');
                         localStorage.removeItem('loggedInUserCity');
-                        window.location.href = '../index.html'; 
+                        window.location.href = '../index.html';
                     } else {
                         const errorData = await response.json();
                         alert(`שגיאה במחיקת החשבון: ${errorData.message || 'נסה שוב מאוחר יותר.'}`);
                     }
                 } catch (error) {
-                    console.error('שגיאה בשליחת בקשת המחיקה:', error);
+                    console.error('Error while sending delete request:', error);
                     alert('אירעה שגיאה בעת ניסיון מחיקת החשבון. אנא נסה שוב מאוחר יותר.');
                 }
             }
