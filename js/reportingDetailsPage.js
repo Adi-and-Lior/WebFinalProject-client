@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayStatus.classList.add(statusClass);
         displayResponse.textContent = report.municipalityResponse || 'טרם התקבלה תגובה';
         if (report.media && report.mediaMimeType) {
-            const mediaUrl = `${API_BASE_URL}/media/${report.media}`;
+            const mediaUrl = `${API_BASE_URL}/api/media/${report.media}`;
             const mimeType = report.mediaMimeType;
             let mediaElement;
             if (mimeType.startsWith('image/')) {

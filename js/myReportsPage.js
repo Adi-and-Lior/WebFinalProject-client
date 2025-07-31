@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let mediaHtml = '';
     if (report.media) {
-      const mediaUrl = `${API_BASE_URL}/media/${report.media}`;
+      const mediaUrl = `${API_BASE_URL}/api/media/${report.media}`;
       const mimeType = report.mediaMimeType;
       if (mimeType && mimeType.startsWith('image/')) {
         mediaHtml = `<section class="report-image-wrapper">
