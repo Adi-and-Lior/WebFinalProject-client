@@ -13,7 +13,6 @@
     background-repeat: no-repeat;
     padding-top: 100px;
     padding-bottom: 30px;
-
 }
 .thank-you-header h1{
     font-size: 100px; 
@@ -38,7 +37,6 @@
     text-align: center;
     letter-spacing: 1px;
 }
-/* קונטיינר פרטי הדיווח (המלבן הלבן) */
 .report-details-container {
     background-color: #EBFFF8;
     border-radius: 45px;
@@ -171,7 +169,6 @@
 .detail-item textarea {
     background-color: #f8f8f8;
 }
-
 .custom-select {
   position: relative;
   width: 100%;

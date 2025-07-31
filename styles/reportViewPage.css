@@ -36,9 +36,9 @@
     margin-bottom: 25px;
 }
 .report-info{
-  display: flex;
-  padding: 0px;
-  font-size: 40px;
+    display: flex;
+    padding: 0px;
+    font-size: 40px;
 }
 .report-id-type{
     font-weight: bold; 

@@ -16,24 +16,19 @@ body{
     height: calc(90vh - 300px);
     width: 100%;                            
 }
-
-
 .custom-select.open {
-    border-bottom: none; /* וודא שאין גבול תחתון כשהוא פתוח */
-    border-radius: 8px 8px 0 0; /* שתי פינות תחתונות מרובעות */
+    border-bottom: none; 
+    border-radius: 8px 8px 0 0; 
 }
-
-/* הגבלת רוחב הדרופדאון למסך המובייל - נוסף */
 .custom-select {
     font-size: 40px;
     position: relative;
     background-color: #f8f8f8;
     cursor: pointer;
     direction: rtl;
-    /* הוסף את השורה הבאה במקום margin-right: 60px; */
-    margin-inline-start: 50px; /* או margin-left: 30px; אם אתה לא משתמש בלוגיקת כתיבה-מצד-ימין-לשמאל גלובלית */
-    width: calc(100% - 50px); /* יבטיח שהרוחב יתאים בדיוק אחרי האייקון */
-    border-bottom: none; /* הסר את הבורדר התחתון של התיבה עצמה */
+    margin-inline-start: 50px; 
+    width: calc(100% - 50px); 
+    border-bottom: none; 
     border-radius: 8px 8px 0 0;
     margin-top: 2px;
     margin-bottom: 0px;
@@ -43,9 +38,8 @@ body{
 .custom-select .options {
     position: absolute;
     top: 100%;
-    /* שנה את זה: */
-    left: 3px; /* זה אמור ליישר את הרשימה עם תחילת הכותרת/האייקון מצד ימין */
-    width: 100%; /* נשאר 100% ביחס לרוחב ה-custom-select עצמו */
+    left: 3px; 
+    width: 100%;
     max-height: 300px;
     overflow-y: auto;
     background-color: #fff;
@@ -61,7 +55,6 @@ body{
     width: 100%;
     box-sizing: border-box;
     padding: 12px 16px;
-    /*/ border-bottom: 1px solid #eee; /*????להסיר את הקו ן */
     margin: 0;
     background-color: #f8f8f8;
     font-size: 40px;
@@ -70,14 +63,12 @@ body{
 .custom-select .options {
     background-color: #f8f8f8;
 }
-
 .custom-select .selected {
   padding: 10px 14px;
   border-radius: 8px;
   background-color: #f8f8f8;
   position: relative;
 }
-
 .custom-select .selected::after {
   content: '▼';
   position: absolute;
@@ -88,28 +79,22 @@ body{
   color: #555;
   pointer-events: none;
 }
-
 .custom-select.open .selected::after {
   content: '▲';
   font-size: 20px;
 }
-
-
 .custom-select.open .options {
   display: block;
 }
-
 .custom-select .options li {
   padding: 10px 14px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   list-style: none;
 }
-
 .custom-select .options li:hover {
   background-color: #eee;
 }
-
 .custom-select .options li.selected {
   background-color: #dceaff;
   font-weight: bold;

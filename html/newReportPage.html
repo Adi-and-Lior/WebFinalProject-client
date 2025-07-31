@@ -8,8 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles/style.css">
-    <link rel="stylesheet" href="../styles/newReportPage.css">
-    
+    <link rel="stylesheet" href="../styles/newReportPage.css">   
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="icon" href="/images/favicon.png" type="image/x-icon">
 </head>
@@ -26,15 +25,13 @@
                 <section class="input-with-inside-icons">
                     <img class="svg-icon" src="../images/Input_icon.svg" alt="קלסר"> 
                     <div class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="fault-type" data-required="true">
-                        <div class="selected" data-value="">בחר תקלה</div>
-                            <ul class="options" role="listbox" aria-label="בחר תקלה">
-                            </ul>
+                        <div class="selected" data-value=""></div>
+                        <ul class="options" role="listbox" aria-label="בחר תקלה"></ul>
                     </div>
                     <input type="hidden" id="fault-type-hidden" name="faultType" />
                 </section>
             </section>
-            <label class="form-label fault-description-label" for="fault-description">
-                תיאור תקלה:
+            <label class="form-label fault-description-label" for="fault-description">תיאור תקלה:
                 <span class="optional optional-indicator"> (לא חובה)</span>
                 <span class="required required-indicator" style="display: none;"> (חובה)</span>
                 <section class="frame-textarea">
@@ -51,9 +48,8 @@
                 <section class="input-with-inside-icons">
                     <img class="svg-icon" src="../images/Map.svg" alt="מפה">
                     <div id="locationSelect" class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="location" data-required="true">
-                            <div class="selected" data-value="">בחר מיקום</div>
-                            <ul class="options" role="listbox" aria-label="בחר מיקום">
-                                </ul>
+                            <div class="selected" data-value=""></div>
+                            <ul class="options" role="listbox" aria-label="בחר מיקום"></ul>
                         </div>
                     <input type="hidden" id="location-hidden" name="location" />
                 </section>    
@@ -63,18 +59,19 @@
                 <section class="input-container">
                     <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
                      <select id="citySelect" name="city" required>
-                    <option value="">בחר עיר</option>
+                        <option value="">בחר עיר</option>
                     </select>   
                 </section>
                 <label class="form-label" for="streetSelect">רחוב: <span class="required">(חובה)</span></label>
                 <section class="input-container">
                     <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
                     <select id="streetSelect" class="form-control" name="street" style="width: 100%;" required>
-                    <option disabled selected value="">בחר רחוב</option>
+                        <option disabled selected value="">בחר רחוב</option>
                     </select>
                 </section>
                 <label class="form-label" for="houseNumberInput">מספר בית: <span class="optional">(לא חובה)</span></label>
-                <section class="input-container no-asterisk-for-optional"> <input class="input-with-inside-icons" type="text" id="houseNumberInput" name="houseNumber" placeholder="מספר בית" />
+                <section class="input-container no-asterisk-for-optional"> 
+                    <input class="input-with-inside-icons" type="text" id="houseNumberInput" name="houseNumber" placeholder="מספר בית" />
                 </section>
                 <p class="description-hint">נא הקלד את הכתובת המלאה של התקלה.</p>
             </section>
@@ -84,14 +81,12 @@
                 <section class="input-with-inside-icons">
                     <img class="svg-icon" src="../images/Camera_icon.svg" alt="מצלמה">    
                     <div id="mediaUploadSelect" class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="mediaUploadSelect" data-required="true">
-                        <div class="selected" data-value="">בחר אפשרות</div>
-                        <ul class="options" role="listbox" aria-label="בחר אפשרות">
-                            </ul>
+                        <div class="selected" data-value=""></div>
+                        <ul class="options" role="listbox" aria-label="בחר אפשרות"></ul>
                     </div>
                     <input type="hidden" id="upload-hidden" name="upload" required />
                 </section>
             </section>
-
             <section id="fileUploadSection" style="display: none;"> 
                 <label class="form-label" for="media-file">בחירת קובץ: <span class="required">(חובה)</span></label>
                 <section class="input-container">
@@ -102,13 +97,11 @@
                 </section>
                 <p class="description-hint">בחר קובץ תמונה או וידאו.</p>
             </section>
-
             <section id="cameraSection" style="display: none;">
                 <video id="cameraPreview" autoplay playsinline></video>
                 <button id="capture" type="button">צלם תמונה</button>
                 <canvas id="canvas" style="display: none;"></canvas>
             </section>
-            
             <button class="submit-button" type="submit">שליחה</button>
         </form>
     </main>

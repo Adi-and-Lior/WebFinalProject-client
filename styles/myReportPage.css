@@ -36,6 +36,7 @@
     border-radius: 45px;
     padding: 20px 25px;
     text-align: right;
+    margin-bottom: 20px;
 }
 .sort-by{
   margin-bottom: 20px;
@@ -160,9 +161,6 @@
 }
 .status-in-progress{
     color: #2e23c2 !important;
-}
-.reports-filters-container{
-    margin-bottom: 20px; 
 }
 .sort-dropdown{
     -webkit-appearance: none;

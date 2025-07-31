@@ -1,16 +1,8 @@
-.select2-container--default .select2-results > .select2-results__options {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
 header{
-  display: flex;
-  margin-left: 10px;
-  padding-top: 100px;
-  align-items: center;
+    display: flex;
+    margin-left: 10px;
+    padding-top: 100px;
+    align-items: center;
 }
 .app-container{
     background-color: #EBFFF8;
@@ -33,8 +25,8 @@ header{
     gap: 40px; 
 }
 .frame-textarea{
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 .form-label{
     font-size: 40px;
@@ -47,13 +39,11 @@ header{
 .form-label .optional{
     color: #5bc0de;
 }
-/* קונטיינר כללי לשדה + אייקון X חיצוני */
 .input-container{
     display: flex;
     align-items: center;
     gap: 10px;
 }
-/* קונטיינר לשדה עצמו ולאייקונים הפנימיים */
 .input-with-inside-icons{
     position: relative;
     flex-grow: 1; 
@@ -62,10 +52,10 @@ header{
     border-radius: 10px;
 }
 .input-container input{
-  font-size: 40px;
-  height: 50px; 
-  width: 20px;
-  padding: 4px 8px;
+    font-size: 40px;
+    height: 50px; 
+    width: 20px;
+    padding: 4px 8px;
 }
 .input-with-inside-icons .svg-icon{
     position: absolute;
@@ -75,9 +65,9 @@ header{
     padding-right: 15px;
 }
 #media-file{
-  font-size: 40px;   
-  padding-left:  800px;   
-  padding-top: 20px;
+    font-size: 40px;   
+    padding-left:  800px;   
+    padding-top: 20px;
 }
 .asterisk{
     height: 35px;
@@ -98,9 +88,9 @@ header{
     border-color: #00BCD4; 
 }
 select{
-  outline: none;
-  box-shadow: none;
-  border: none;
+    outline: none;
+    box-shadow: none;
+    border: none;
 }   
 .report-form textarea{
     margin-top: 30px;
@@ -147,7 +137,7 @@ textarea:focus{
     justify-content: center; 
 }
 .submit-button:hover{
-  color: #10435c;
+    color: #10435c;
 }
 #cameraPreview{
     display: none; 
@@ -170,11 +160,11 @@ textarea:focus{
     width: 100% !important;
 }
 .select2-search--dropdown .select2-search__field {
-  height: 60px;         /* גובה התיבה */
-  font-size: 40px;
-  max-width: 100% !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+    height: 60px;        
+    font-size: 40px;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 .select2-results__option {
     font-size: 18px; 
@@ -190,12 +180,18 @@ textarea:focus{
   max-width: 100% !important;
   width: 100% !important;
 }
+.select2-container--default .select2-results > .select2-results__options {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 .select2-search--dropdown {
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
 }
-
 .select2-container .select2-selection--single {
     height: 72px !important;
     background-color: #f8f8f8 !important;
@@ -203,15 +199,13 @@ textarea:focus{
     border-radius: 10px !important;
   }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-  margin-top: 25px;    
-  font-size: 35px;
+    margin-top: 25px;    
+    font-size: 35px;
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-  margin-top: 25px;     
-  margin-left:5px;
+    margin-top: 25px;     
+    margin-left:5px;
 }
-
-/* הגבלת רוחב הדרופדאון למסך המובייל - אופציות ארוכות */
 .select2-results__option {
     max-width: 100% !important;
     width: 100% !important;
@@ -221,45 +215,36 @@ textarea:focus{
     overflow-wrap: break-word !important;
     text-overflow: ellipsis !important;
 }
-
-
-
-/* Media Queries למובייל */
+/* Media Queries  */
 @media screen and (max-width: 768px) {
     .input-with-inside-icons select,
     .report-form textarea {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
-    }
-    
+    }   
     .select2-container {
         width: 100% !important;
         max-width: 100% !important;
     }
-    
     .select2-dropdown {
         width: 100vw !important;
         max-width: 100vw !important;
         left: 0 !important;
         right: 0 !important;
     }
-    
     .select2-results__option {
         font-size: 16px !important;
         padding: 8px 12px !important;
     }
 }
-
 @media screen and (max-width: 480px) {
     .form-label {
         font-size: 24px !important;
     }
-    
     .input-with-inside-icons select {
         font-size: 24px !important;
     }
-    
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         font-size: 24px !important;
     }
