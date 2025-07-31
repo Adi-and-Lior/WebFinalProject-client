@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const reportsDisplayArea = document.getElementById('reports-display-area');
     const filterButtons = document.querySelectorAll('.filter-button');
-    const sortDropdown = document.getElementById('sort-reports-dropdown');
+    const customSortSelect = document.getElementById('sortReportsDropdown'); // custom select שלך
     const backButton = document.getElementById('backButton');
     let allReports = [];
     let currentFilter = 'all';
@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const user = localStorage.getItem('loggedInUser');
         return user ? JSON.parse(user) : null;
     }
+
     async function fetchReports(city, status = 'all') {
         try {
             const BASE_URL = 'https://webfinalproject-server.onrender.com';
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return [];
         }
     }
+
     function sortReports(reportsArr) {
         const arr = [...reportsArr];
         if (currentSort === 'alphabetical') {
@@ -33,7 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return arr;
     }
-    function createReportCard(report) { 
+
+    function createReportCard(report) {
         const card = document.createElement('section');
         card.classList.add('report-summary-card');
         const displayId = report._id.slice(-4);
@@ -47,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         return card;
     }
+
     function displayReports(reportsArr) {
         reportsDisplayArea.innerHTML = '';
         const sorted = sortReports(reportsArr);
@@ -61,32 +65,113 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         sorted.forEach(r => reportsDisplayArea.appendChild(createReportCard(r)));
     }
-    async function handleFilterChange(evt) {
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        evt.target.classList.add('active');
-        currentFilter = evt.target.dataset.filter || 'all';
-        const user = getLoggedInUser();
-        if (!user || !user.city) {
-            console.error('User city missing – cannot fetch reports.');
-            return;
+
+    function handleSortChange(newSort) {
+        currentSort = newSort;
+
+        // עדכון הטקסט והערך של ה-selected div ב-custom-select
+        if (customSortSelect) {
+            const selectedDiv = customSortSelect.querySelector('.selected');
+            const optionsList = customSortSelect.querySelectorAll('li');
+
+            optionsList.forEach(li => {
+                if (li.dataset.value === currentSort) {
+                    li.classList.add('selected');
+                    selectedDiv.textContent = li.textContent;
+                    selectedDiv.dataset.value = li.dataset.value;
+                } else {
+                    li.classList.remove('selected');
+                }
+            });
+
+            // סגירת הרשימה לאחר הבחירה
+            customSortSelect.setAttribute('aria-expanded', 'false');
+            customSortSelect.classList.remove('open');
+            const ulOptions = customSortSelect.querySelector('.options');
+            if (ulOptions) ulOptions.style.display = 'none';
         }
-        allReports = await fetchReports(user.city, currentFilter);
+
         displayReports(allReports);
     }
-    function handleSortChange() {
-        currentSort = sortDropdown.value;
-        displayReports(allReports);
+
+    // טיפול בפתיחה וסגירה של ה-custom-select
+    if (customSortSelect) {
+        const selectedDiv = customSortSelect.querySelector('.selected');
+        const optionsList = customSortSelect.querySelector('.options');
+
+        // אתחול סגירת הרשימה
+        optionsList.style.display = 'none';
+        customSortSelect.setAttribute('aria-expanded', 'false');
+
+        customSortSelect.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = customSortSelect.classList.contains('open');
+            if (isOpen) {
+                // סגור את הרשימה
+                customSortSelect.classList.remove('open');
+                customSortSelect.setAttribute('aria-expanded', 'false');
+                optionsList.style.display = 'none';
+            } else {
+                // סגור קודם את כל הרשימות הפתוחות
+                closeAllCustomSelects();
+                // פתח את הרשימה
+                customSortSelect.classList.add('open');
+                customSortSelect.setAttribute('aria-expanded', 'true');
+                optionsList.style.display = 'block';
+            }
+        });
+
+        // בחירת פריט מהרשימה
+        optionsList.querySelectorAll('li').forEach(li => {
+            li.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedDiv.textContent = li.textContent;
+                selectedDiv.dataset.value = li.dataset.value;
+
+                // סגור את הרשימה
+                customSortSelect.classList.remove('open');
+                customSortSelect.setAttribute('aria-expanded', 'false');
+                optionsList.style.display = 'none';
+
+                // עדכן מיון
+                handleSortChange(li.dataset.value);
+            });
+        });
+
+        // פונקציה לסגירת כל הרשימות הפתוחות
+        function closeAllCustomSelects() {
+            document.querySelectorAll('.custom-select.open').forEach(sel => {
+                sel.classList.remove('open');
+                sel.setAttribute('aria-expanded', 'false');
+                const ul = sel.querySelector('.options');
+                if (ul) ul.style.display = 'none';
+            });
+        }
+
+        // סגור את הרשימה בלחיצה מחוץ
+        document.addEventListener('click', () => {
+            closeAllCustomSelects();
+        });
     }
+
     const user = getLoggedInUser();
     if (!user || user.userType !== 'employee' || !user.city) {
         alert('עליך להיות מחובר כעובד עם עיר כדי לצפות בדיווחים.');
         window.location.href = '../html/login.html';
         return;
     }
+
     allReports = await fetchReports(user.city, currentFilter);
     displayReports(allReports);
-    filterButtons.forEach(btn => btn.addEventListener('click', handleFilterChange));
-    sortDropdown.addEventListener('change', handleSortChange);
+
+    filterButtons.forEach(btn => btn.addEventListener('click', async (evt) => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        evt.target.classList.add('active');
+        currentFilter = evt.target.dataset.filter || 'all';
+        allReports = await fetchReports(user.city, currentFilter);
+        displayReports(allReports);
+    }));
+
     if (backButton) {
         backButton.addEventListener('click', e => {
             e.preventDefault();
