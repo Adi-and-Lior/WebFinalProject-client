@@ -26,10 +26,13 @@
         <section class="reports-filters-container">
             <h2 class="filters-title">הדיווחים ממוינים לפי:</h2>
             <section class="filter-dropdown-wrapper"> 
-                <select class="sort-dropdown" id="sort-reports-dropdown">
-                <option value="date-default" selected>תאריך (ברירת מחדל)</option>
-                <option value="alphabetical">סדר א'-ב'</option>
-                </select>
+                <div id="sortReportsDropdown" class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox">
+      <div class="selected" data-value="date-default">תאריך (ברירת מחדל)</div>
+      <ul class="options" role="listbox" aria-label="בחר סינון">
+        <li data-value="date-default" class="selected">תאריך (ברירת מחדל)</li>
+        <li data-value="alphabetical">סדר א'-ב'</li>
+      </ul>
+    </div>
             </section>
             <section id="reports-display-area">
             </section>

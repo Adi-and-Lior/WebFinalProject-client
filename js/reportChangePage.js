@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // אירוע בחירת אופציה
             optionsList.querySelectorAll('li').forEach(li => {
-                li.addEventListener('click', (e) => {
+                li.addEventListener('click', () => {
                     e.stopPropagation();
                     selectedDiv.textContent = li.textContent;
                     editStatus.dataset.value = li.dataset.value;

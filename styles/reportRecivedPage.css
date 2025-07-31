@@ -168,3 +168,57 @@
 .footer-employee button:hover{
   color: #10435c;
 }
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-select .selected {
+  padding: 10px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.custom-select .options {
+    display: none;
+  position: absolute;
+  width: 100%;
+  background: white;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 0 0 6px 6px;
+  z-index: 100;
+  margin-top: 2px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.custom-select.open .options {
+  display: block;
+}
+
+.custom-select .options li {
+  padding: 8px ;
+  list-style: none;
+}
+
+.custom-select .options li:hover,
+.custom-select .options li.selected {
+  background-color: #f0f0f0;
+}
+.custom-select .options-list {
+  display: none;
+}
+
+.custom-select.open .options-list {
+  display: block;
+}

@@ -18,16 +18,19 @@
         <img class="header-logo" src="../images/Logo-report.png" alt="דיווח חדש - לוגו">
         <a id="backButton"><img class="back-arrow" src="../images/arrow_left.svg" alt="חזור"></a>
     </header>
-    <main class="app-container">    
+    <main class="app-container">     
         <form class="report-form">
             <label for="fault-type" class="form-label">סוג תקלה: <span class="required">(חובה)</span></label>
             <section class="input-container">
                 <img class="asterisk" src="../images/asterisk.svg" alt="asterisk"> 
                 <section class="input-with-inside-icons">
                     <img class="svg-icon" src="../images/Input_icon.svg" alt="קלסר"> 
-                    <select id="fault-type" name="fault-type" required>
-                        <option value="" disabled selected hidden>בחר תקלה</option>    
-                    </select>
+                    <div class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="fault-type" data-required="true">
+                        <div class="selected" data-value="">בחר תקלה</div>
+                            <ul class="options" role="listbox" aria-label="בחר תקלה">
+                                </ul>
+                    </div>
+                    <input type="hidden" id="fault-type-hidden" name="faultType" />
                 </section>
             </section>
             <label class="form-label fault-description-label" for="fault-description">
@@ -40,25 +43,28 @@
                     </span>
                     <textarea id="fault-description" name="fault-description" placeholder="" rows="4"></textarea> 
                 </section>
-            </label>     
+            </label>    
             <p class="description-hint">מומלץ לתאר את התקלה בצורה מורחבת. זה יעזור להבנה טובה יותר של התקלה וישפר את דרכי טיפול בה.</p>   
             <label class="form-label" for="location">מיקום: <span class="required">(חובה)</span></label>
             <section class="input-container">
                 <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
                 <section class="input-with-inside-icons">
-                    <img class="svg-icon" src="../images/Map.svg" alt="מפה">  
-                    <select id="location" name="location" required>
-                        <option value="" disabled selected hidden>הכנס מיקום</option>
-                    </select>
+                    <img class="svg-icon" src="../images/Map.svg" alt="מפה">
+                    <div id="locationSelect" class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="location" data-required="true">
+                            <div class="selected" data-value="">בחר מיקום</div>
+                            <ul class="options" role="listbox" aria-label="בחר מיקום">
+                                </ul>
+                        </div>
+                    <input type="hidden" id="location-hidden" name="location" />
                 </section>    
             </section>
             <section id="manualAddressSection" style="display: none;">
                 <label class="form-label" for="citySelect">עיר: <span class="required">(חובה)</span></label>
                 <section class="input-container">
                     <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
-                    <select id="citySelect" name="city" required>
+                     <select id="citySelect" name="city" required>
                     <option value="">בחר עיר</option>
-                    </select>
+                    </select>   
                 </section>
                 <label class="form-label" for="streetSelect">רחוב: <span class="required">(חובה)</span></label>
                 <section class="input-container">
@@ -72,17 +78,21 @@
                 </section>
                 <p class="description-hint">נא הקלד את הכתובת המלאה של התקלה.</p>
             </section>
-            <label for="upload" class="form-label">העלאת תמונה/סרטון: <span class="required">(חובה)</span></label>
+            <label for="mediaUploadSelect" class="form-label">העלאת תמונה/סרטון: <span class="required">(חובה)</span></label>
             <section class="input-container">
                 <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
                 <section class="input-with-inside-icons">
-                    <img class="svg-icon" src="../images/Camera_icon.svg" alt="מצלמה">  
-                    <select id="upload" name="upload" required>
-                        <option value="" disabled selected hidden>בחר אפשרות</option>
-                    </select>
+                    <img class="svg-icon" src="../images/Camera_icon.svg" alt="מצלמה">    
+                    <div id="mediaUploadSelect" class="custom-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false" role="combobox" data-select-id="mediaUploadSelect" data-required="true">
+                        <div class="selected" data-value="">בחר אפשרות</div>
+                        <ul class="options" role="listbox" aria-label="בחר אפשרות">
+                            </ul>
+                    </div>
+                    <input type="hidden" id="upload-hidden" name="upload" required />
                 </section>
             </section>
-            <section id="mediaUploadSection" style="display: none;">
+
+            <section id="fileUploadSection" style="display: none;"> 
                 <label class="form-label" for="media-file">בחירת קובץ: <span class="required">(חובה)</span></label>
                 <section class="input-container">
                     <img class="asterisk" src="../images/asterisk.svg" alt="asterisk">
@@ -92,9 +102,13 @@
                 </section>
                 <p class="description-hint">בחר קובץ תמונה או וידאו.</p>
             </section>
-            <video id="cameraPreview" autoplay playsinline></video>
-            <button id="capture" type="button">צלם תמונה</button>
-            <canvas id="canvas" style="display: none;"></canvas>
+
+            <section id="cameraSection" style="display: none;">
+                <video id="cameraPreview" autoplay playsinline></video>
+                <button id="capture" type="button">צלם תמונה</button>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </section>
+            
             <button class="submit-button" type="submit">שליחה</button>
         </form>
     </main>
