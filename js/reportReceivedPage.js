@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // פונקציה לעדכון מיקום הדיווח בשרת (הפונקציה החדשה שדיברנו עליה)
+    // פונקציה לעדכון מיקום הדיווח בשרת 
     async function updateReportLocation(reportId, city, street, houseNumber, latitude, longitude) {
         console.log(`[DEBUG] Updating report location for ID: ${reportId} to City: ${city}, Street: ${street}, Number: ${houseNumber}`);
         try {

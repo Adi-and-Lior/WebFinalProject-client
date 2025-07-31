@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchReportDetails(reportId) {
         try {
-            const url = `${API_BASE_URL}/reports/${reportId}`;
+            const url = `${API_BASE_URL}/api/reports/${reportId}`;
             const res = await fetch(url, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }

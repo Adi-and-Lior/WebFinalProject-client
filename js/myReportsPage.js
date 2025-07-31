@@ -244,7 +244,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     optionsList.querySelectorAll('li').forEach(li => {
-      li.addEventListener('click', () => {
+      li.addEventListener('click', (e) => {
+        e.stopPropagation();
         updateCustomSelectUI(li.dataset.value);
         customSortSelect.setAttribute('aria-expanded', 'false');
         optionsList.style.display = 'none';
@@ -272,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (backButton) {
     backButton.addEventListener('click', (event) => {
       event.preventDefault();
-      window.history.back();
+      window.location.href = '/html/homePageCitizen.html';
     });
   }
 

@@ -706,11 +706,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
                 capturedBlob = blob;
-                alert("Image successfully captured and saved for the report.");
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(blob);
-                img.style.maxWidth = '100px';
-                img.style.maxHeight = '100px';
+                img.style.maxWidth = '200px';
+                img.style.maxHeight = '200px';
                 img.style.marginTop = '10px';
                 const existingPreview = document.getElementById('capturedImagePreview');
                 if (existingPreview) {
