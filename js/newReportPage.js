@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         );
                         currentCity = cityComponent ? cityComponent.long_name : '';
                         console.log("getCurrentLocation: Parsed address:", locationString, "City:", currentCity);
-                        alert(`המיקום זוהה: ${locationString}`);
+                        alert(`המיקום הנוכחי זוהה בהצלחה!`);
                         updateStatusIcon(customLocationSelect, locationStatusIcon);
                     } else {
                         locationString = `קו רוחב: ${currentLat}, קו אורך: ${currentLon}`;
