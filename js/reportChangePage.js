@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const displayTime           = document.getElementById('displayTime');
     const displayDescription    = document.getElementById('displayDescription');
     const mediaContainer        = document.getElementById('mediaContainer');
-    const editStatus            = document.getElementById('editStatus');
+    const editStatus            = document.getElementById('editStatus');  // זה עכשיו ה-DIV של custom-select
     const editMunicipalityResponse = document.getElementById('editMunicipalityResponse');
     const saveChangesButton     = document.getElementById('saveChangesButton');
     const cancelChangesButton   = document.getElementById('cancelChangesButton');
@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    /* ---------- Updates an existing report in the database with the provided data ---------- */
     async function updateReport(id, updatedData) {
         try {
             const response = await fetch(`${BASE_URL}/api/reports/${id}`, {
@@ -69,75 +68,119 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    /* ---------- Load status options into custom select ---------- */
     async function loadStatusOptions() {
-    try {
-        const response = await fetch(`${BASE_URL}/api/status-options`);
-        if (!response.ok) throw new Error('שגיאה בטעינת סטטוסים מהשרת');
+        try {
+            const response = await fetch(`${BASE_URL}/api/status-options`);
+            if (!response.ok) throw new Error('שגיאה בטעינת סטטוסים מהשרת');
 
-        const statuses = await response.json();
+            const statuses = await response.json();
 
-        editStatus.innerHTML = ''; // נקה את הסלקט
+            const selectedDiv = editStatus.querySelector('.selected');
+            const optionsList = editStatus.querySelector('.options');
 
-        statuses.forEach(status => {
-            const option = document.createElement('option');
-            option.value = status.value;        // הערך הפנימי של הסטטוס (לשמירה)
-            option.textContent = status.name; // הצגה בעברית
-            editStatus.appendChild(option);
-        });
+            optionsList.innerHTML = ''; // נקה את הרשימה
 
-        // בחר את הסטטוס הנוכחי אם הדיווח כבר נטען
-        if (currentReport && currentReport.status) {
-            editStatus.value = currentReport.status;
+            statuses.forEach(status => {
+                const li = document.createElement('li');
+                li.textContent = status.name;
+                li.dataset.value = status.value; // ערך פנימי
+                optionsList.appendChild(li);
+            });
+
+            // בחר את הסטטוס הנוכחי אם קיים בדיווח
+            if (currentReport && currentReport.status) {
+                const normalizedStatus = currentReport.status.toLowerCase().replace(/_/g, '-');
+                const selectedStatus = statuses.find(s => s.value === normalizedStatus);
+                if (selectedStatus) {
+                    selectedDiv.textContent = selectedStatus.name;
+                    // מסמן את האופציה הנבחרת
+                    optionsList.querySelectorAll('li').forEach(li => {
+                        li.classList.toggle('selected', li.dataset.value === normalizedStatus);
+                    });
+                    editStatus.dataset.value = normalizedStatus;
+                }
+            } else {
+                selectedDiv.textContent = 'בחר סטטוס';
+                editStatus.dataset.value = '';
+            }
+
+            // אירוע פתיחה וסגירה של הרשימה
+            editStatus.addEventListener('click', () => {
+                editStatus.classList.toggle('open');
+                const expanded = editStatus.classList.contains('open');
+                editStatus.setAttribute('aria-expanded', expanded);
+            });
+
+            // אירוע בחירת אופציה
+            optionsList.querySelectorAll('li').forEach(li => {
+                li.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedDiv.textContent = li.textContent;
+                    editStatus.dataset.value = li.dataset.value;
+                    optionsList.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
+                    li.classList.add('selected');
+                    editStatus.classList.remove('open');
+                    editStatus.setAttribute('aria-expanded', 'false');
+                });
+            });
+
+            // סגירת הרשימה בלחיצה מחוץ
+            document.addEventListener('click', e => {
+                if (!editStatus.contains(e.target)) {
+                    editStatus.classList.remove('open');
+                    editStatus.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+        } catch (err) {
+            console.error('שגיאה בטעינת סטטוסים:', err);
+            const optionsList = editStatus.querySelector('.options');
+            optionsList.innerHTML = '<li>שגיאה בטעינה</li>';
         }
-
-    } catch (err) {
-        console.error('שגיאה בטעינת סטטוסים:', err);
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'שגיאה בטעינה';
-        editStatus.appendChild(option);
     }
-}
 
-    /* ---------- Viewing report data---------- */
+    /* ---------- Populate report data ---------- */
     async function populateReportData(report) {
         displayFaultType.textContent = report.faultType || 'לא ידוע';
+
         let locationText = '';
         if (report.location) {
             if (report.location.type === 'manual') {
-        if (report.location.city)        locationText += report.location.city;
-        if (report.location.street)      locationText += `, ${report.location.street}`;
-        if (report.location.houseNumber) locationText += ` ${report.location.houseNumber}`;
-        document.getElementById('displayLocation').textContent = locationText || 'לא הוזן מיקום';
-    } else if (report.location.type === 'current') {
-        const lat = report.location.latitude;
-        const lon = report.location.longitude;
-        if (lat != null && lon != null) {
-            try {
-                const geoRes = await fetch(`${BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
-                if (geoRes.ok) {
-                    const geoData = await geoRes.json();
-                    const city = geoData.city || geoData.town || geoData.village || '';
-                    const street = geoData.road || '';
-                    const houseNumber = geoData.house_number || '';
-                    locationText = `${city}, ${street}${houseNumber ? ' ' + houseNumber : ''}`;
-                    document.getElementById('displayLocation').textContent = locationText || 'מיקום לפי GPS';
+                if (report.location.city)        locationText += report.location.city;
+                if (report.location.street)      locationText += `, ${report.location.street}`;
+                if (report.location.houseNumber) locationText += ` ${report.location.houseNumber}`;
+                displayLocation.textContent = locationText || 'לא הוזן מיקום';
+            } else if (report.location.type === 'current') {
+                const lat = report.location.latitude;
+                const lon = report.location.longitude;
+                if (lat != null && lon != null) {
+                    try {
+                        const geoRes = await fetch(`${BASE_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+                        if (geoRes.ok) {
+                            const geoData = await geoRes.json();
+                            const city = geoData.city || geoData.town || geoData.village || '';
+                            const street = geoData.road || '';
+                            const houseNumber = geoData.house_number || '';
+                            locationText = `${city}, ${street}${houseNumber ? ' ' + houseNumber : ''}`;
+                            displayLocation.textContent = locationText || 'מיקום לפי GPS';
+                        } else {
+                            displayLocation.textContent = 'מיקום לפי GPS';
+                        }
+                    } catch (err) {
+                        console.error('שגיאה ב-reverse geocode:', err);
+                        displayLocation.textContent = 'מיקום לפי GPS';
+                    }
                 } else {
-                    document.getElementById('displayLocation').textContent = 'מיקום לפי GPS';
+                    displayLocation.textContent = 'מיקום לפי GPS';
                 }
-            } catch (err) {
-                console.error('שגיאה ב-reverse geocode:', err);
-                document.getElementById('displayLocation').textContent = 'מיקום לפי GPS';
+            } else {
+                displayLocation.textContent = 'סוג מיקום לא נתמך';
             }
         } else {
-            document.getElementById('displayLocation').textContent = 'מיקום לפי GPS';
+            displayLocation.textContent = 'לא הוזן מיקום';
         }
-    } else {
-        document.getElementById('displayLocation').textContent = 'סוג מיקום לא נתמך';
-    }
-} else {
-    document.getElementById('displayLocation').textContent = 'לא הוזן מיקום';
-}
+
         if (report.timestamp) {
             const date = new Date(report.timestamp);
             displayDate.textContent = date.toLocaleDateString('he-IL');
@@ -146,39 +189,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayDate.textContent = 'לא ידוע';
             displayTime.textContent = 'לא ידוע';
         }
+
         displayDescription.textContent = report.faultDescription || 'אין תיאור';
+
         mediaContainer.innerHTML = '';
-       if (report.media) {
-    const mediaUrl = `${BASE_URL}/api/media/${report.media}`;
-    try {
-        const headResponse = await fetch(mediaUrl, { method: 'HEAD' });
-        if (!headResponse.ok) throw new Error('שגיאה בקבלת מידע על המדיה');
-        const contentType = headResponse.headers.get('Content-Type') || '';
-        console.log('Media Content-Type:', contentType);
-        if (contentType.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = mediaUrl;
-            img.alt = 'תמונה מצורפת לדיווח';
-            img.style.maxWidth = '100%';
-            img.style.height = 'auto';
-            mediaContainer.appendChild(img);
-        } else if (contentType.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = mediaUrl;
-            video.controls = true;
-            video.style.maxWidth = '100%';
-            video.style.height = 'auto';
-            mediaContainer.appendChild(video);
+        if (report.media) {
+            const mediaUrl = `${BASE_URL}/api/media/${report.media}`;
+            try {
+                const headResponse = await fetch(mediaUrl, { method: 'HEAD' });
+                if (!headResponse.ok) throw new Error('שגיאה בקבלת מידע על המדיה');
+                const contentType = headResponse.headers.get('Content-Type') || '';
+                if (contentType.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = mediaUrl;
+                    img.alt = 'תמונה מצורפת לדיווח';
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    mediaContainer.appendChild(img);
+                } else if (contentType.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = mediaUrl;
+                    video.controls = true;
+                    video.style.maxWidth = '100%';
+                    video.style.height = 'auto';
+                    mediaContainer.appendChild(video);
+                } else {
+                    mediaContainer.textContent = 'קובץ מדיה לא נתמך.';
+                }
+            } catch (err) {
+                console.error('Error loading media:', err);
+                mediaContainer.textContent = 'שגיאה בטעינת המדיה.';
+            }
         } else {
-            mediaContainer.textContent = 'קובץ מדיה לא נתמך.';
+            mediaContainer.textContent = 'אין מדיה מצורפת.';
         }
-    } catch (err) {
-        console.error('Error loading media:', err);
-        mediaContainer.textContent = 'שגיאה בטעינת המדיה.';
-    }
-} else {
-    mediaContainer.textContent = 'אין מדיה מצורפת.';
-}
+
+        // עדכון תצוגת סטטוס בעברית (להראות בתצוגה, לא לעריכה)
         const normalizedStatus = (report.status || '').toLowerCase().replace(/_/g, '-');
         const statusHebrew     = statusTranslations[normalizedStatus] || 'לא ידוע';
         const displayStatus = document.getElementById('displayStatus');
@@ -189,31 +235,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (normalizedStatus === 'rejected')  displayStatus.classList.add('status-rejected');
             if (normalizedStatus === 'in-progress') displayStatus.classList.add('status-in-progress');
         }
+
         const displayMunicipalityResponse = document.getElementById('displayMunicipalityResponse');
         if (displayMunicipalityResponse) {
             displayMunicipalityResponse.textContent =
                 report.municipalityResponse || 'טרם התקבלה תגובה מהרשות המקומית.';
         }
-        if (editStatus)               editStatus.value               = report.status || 'in-progress';
+
+        // לא משנים את editStatus כאן כי הוא נטען אחרי בפונקציה loadStatusOptions
         if (editMunicipalityResponse) editMunicipalityResponse.value = report.municipalityResponse || '';
     }
+
     if (!reportId) {
         reportsTitleElement.textContent = 'שגיאה: ID דיווח חסר';
         console.error('Report ID is missing from the URL.');
         return;
     }
+
     if (reportNumberDisplayElement) {
         reportNumberDisplayElement.textContent = `${reportId.slice(-4)}`;
     }
+
     const user = getLoggedInUser();
     if (saveChangesButton && (!user || user.userType !== 'employee')) {
         alert('אין לך הרשאה לערוך דיווחים.');
         window.location.href = '../html/login.html';
         return;
     }
+
     currentReport = await fetchReportDetails(reportId);
     if (currentReport) {
-        populateReportData(currentReport);
+        await populateReportData(currentReport);
         await loadStatusOptions();
     } else {
         reportsTitleElement.textContent = 'שגיאה בטעינת דיווח';
@@ -224,10 +276,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (saveChangesButton)   saveChangesButton.style.display   = 'none';
         if (cancelChangesButton) cancelChangesButton.style.display = 'none';
     }
+
     if (saveChangesButton) {
         saveChangesButton.addEventListener('click', async () => {
+            // במקום editStatus.value משתמשים בערך השמור ב-dataset.value
+            const selectedValue = editStatus.dataset.value || 'in-progress';
             const updatedData = {
-                status              : editStatus.value,
+                status: selectedValue,
                 municipalityResponse: editMunicipalityResponse.value
             };
             const result = await updateReport(reportId, updatedData);
@@ -237,6 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+
     if (cancelChangesButton) {
         cancelChangesButton.addEventListener('click', () => {
             if (currentReport) populateReportData(currentReport);
@@ -244,6 +300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.history.back();
         });
     }
+
     if (backButton) {
         backButton.addEventListener('click', () => window.history.back());
     }
