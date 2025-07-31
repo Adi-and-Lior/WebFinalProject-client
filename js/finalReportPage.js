@@ -95,7 +95,7 @@ async function populateReportData(report) {
         displayTime.textContent  = 'Unknown';
     }
 
-    displayDescription.textContent = report.faultDescription || 'No description provided';
+    displayDescription.textContent = report.faultDescription || 'אין תיאור.';
 
     /* ---------- Display media (image/video) based on content type ---------- */
     mediaContainer.innerHTML = '';

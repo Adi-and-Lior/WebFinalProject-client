@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayDate.textContent = 'לא ידוע';
             displayTime.textContent = 'לא ידוע';
         }
-        displayDescription.textContent = reportData.faultDescription || 'אין תיאור';
+        displayDescription.textContent = reportData.faultDescription || 'אין תיאור.';
 
         /* ---------- Display media preview if available ---------- */
         if (reportData.media && reportData.media !== 'no media') {

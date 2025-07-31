@@ -369,7 +369,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('שגיאה בטעינת אפשרויות מדיה. אנא רענן את הדף או נסה שוב מאוחר יותר.');
         }
     }
-    // --- פונקציות עדכון UI/לוגיקה ---
     function updateFaultDescriptionRequirement() {
     /* ---------- Get selected fault type value safely ---------- */
     const selectedFaultType = faultTypeSelected ? faultTypeSelected.dataset.value : '';
@@ -849,7 +848,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             mediaUploadCustomSelect.classList.toggle('open');
             mediaUploadCustomSelect.setAttribute('aria-expanded', String(mediaUploadCustomSelect.classList.contains('open')));
         });
-        /* ---------- Note: individual 'li' click listeners set inside loadMediaOptions ---------- */
         updateMediaUploadVisibility(); // Initial call to set visibility based on default/selected option
         updateStatusIcon(mediaUploadCustomSelect, uploadStatusIcon);
     }
